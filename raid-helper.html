@@ -57,12 +57,13 @@
         }
         #find-counters-btn:hover { background-color: #4cae4c; }
         
-        #error-message {
+        #error-message, .boss-info {
              text-align: center;
              font-weight: bold;
-             color: #d9534f;
              margin-top: 1rem;
         }
+        #error-message { color: #d9534f; }
+        .boss-info { color: #555; }
         
         .type-badge-small { display: inline-block; padding: 2px 8px; font-size: 0.85em; border-radius: 4px; color: white; font-weight: 500; margin: 0 2px; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); }
         .stat-value { padding: 2px 8px; border-radius: 4px; color: white; font-weight: bold; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); }
@@ -78,7 +79,7 @@
         .pokedex-table th, .pokedex-table td { padding: 10px; border: 1px solid #ddd; text-align: left; white-space: nowrap; }
         .pokedex-table th { background-color: #f2f2f2; cursor: pointer; user-select: none; position: sticky; top: 0; }
         .pokedex-table th:hover { background-color: #e2e2e2; }
-        .pokedex-table td .reason { font-size: 0.85em; display: block; white-space: normal; }
+        .pokedex-table td .reason { font-size: 0.85em; display: block; white-space: normal; max-width: 250px; }
 
     </style>
 </head>
@@ -158,6 +159,14 @@ function findTeraRaidCounters() {
         errorMessage.textContent = 'Please enter a valid Pokémon name for the Raid Boss.';
         return;
     }
+    
+    // Auto-detect boss attacker type
+    let bossAttackerType = 'mixed';
+    if (raidBoss.baseStats.atk > raidBoss.baseStats.spa + 15) {
+        bossAttackerType = 'physical';
+    } else if (raidBoss.baseStats.spa > raidBoss.baseStats.atk + 15) {
+        bossAttackerType = 'special';
+    }
 
     const bossOriginalTypes = raidBoss.types;
     potentialCounters = []; // Reset the list
@@ -171,8 +180,8 @@ function findTeraRaidCounters() {
         counter.types.forEach(counterAttackType => {
             const multiplier = TYPE_CHART[counterAttackType]?.[teraType] ?? 1;
             if (multiplier === 2) {
-                score += 3; // Heavily reward super-effective STAB
-                offensiveReasons.push(counterAttackType);
+                score += 3; 
+                if(!offensiveReasons.includes(`Hits ${teraType} Super-Effectively`)) offensiveReasons.push(`Hits ${teraType} Super-Effectively`);
             }
         });
 
@@ -183,32 +192,38 @@ function findTeraRaidCounters() {
                 defensiveMultiplier *= (TYPE_CHART[bossAttackType]?.[counterDefendType] ?? 1);
             });
 
-            if (defensiveMultiplier === 0) {
-                score += 2; // Reward immunity
-                defensiveReasons.push(`Immune to ${bossAttackType}`);
-            } else if (defensiveMultiplier <= 0.5) {
-                score += 1; // Reward resistance
-                defensiveReasons.push(`Resists ${bossAttackType}`);
-            } else if (defensiveMultiplier >= 2) {
-                score -= 4; // Heavily penalize weakness
-            }
+            if (defensiveMultiplier === 0) { score += 2; defensiveReasons.push(`Immune to ${bossAttackType}`); } 
+            else if (defensiveMultiplier <= 0.25) { score += 1.5; defensiveReasons.push(`Resists ${bossAttackType} (x0.25)`); }
+            else if (defensiveMultiplier <= 0.5) { score += 1; defensiveReasons.push(`Resists ${bossAttackType} (x0.5)`); }
+            else if (defensiveMultiplier >= 2) { score -= 4; }
         });
+
+        // 3. Stat-based Scoring
+        const counterStats = counter.baseStats;
+        const bossStats = raidBoss.baseStats;
+
+        if (bossAttackerType === 'physical' && counterStats.def > 100) { score += 1; defensiveReasons.push('High Defense'); }
+        if (bossAttackerType === 'special' && counterStats.spd > 100) { score += 1; defensiveReasons.push('High Sp. Defense'); }
+
+        // Bonus for targeting the boss's weaker defensive stat
+        if (bossStats.def < bossStats.spd && counterStats.atk > counterStats.spa + 15) { score += 1.5; offensiveReasons.push('Targets weaker Defense'); }
+        if (bossStats.spd < bossStats.def && counterStats.spa > counterStats.atk + 15) { score += 1.5; offensiveReasons.push('Targets weaker Sp. Defense'); }
         
-        if (score > 2) { // Set a higher threshold for better results
+        if (score > 2) { 
             potentialCounters.push({
                 pokemon: counter,
                 score: score,
-                offensiveReasons: offensiveReasons,
-                defensiveReasons: defensiveReasons,
+                offensiveReason: offensiveReasons.join(', '),
+                defensiveReason: defensiveReasons.join(', ')
             });
         }
     });
     
     currentSort = { column: 'score', ascending: false }; // Default sort
-    sortAndRenderCounters();
+    sortAndRenderCounters(bossAttackerType);
 }
 
-function sortAndRenderCounters() {
+function sortAndRenderCounters(bossAttackerType = 'mixed') {
     const { column, ascending } = currentSort;
     
     potentialCounters.sort((a, b) => {
@@ -232,24 +247,26 @@ function sortAndRenderCounters() {
         }
     });
     
-    renderRaidCounters(potentialCounters);
+    renderRaidCounters(potentialCounters, bossAttackerType);
 }
 
 
 // --- RENDERING RESULTS ---
-function renderRaidCounters(counters) {
+function renderRaidCounters(counters, bossAttackerType) {
     const resultsOutput = document.getElementById('results-output');
     const bossName = document.getElementById('raid-boss-name').value;
     const teraType = document.getElementById('tera-type-select').value;
     
     let tableHTML = `
         <h2>Top Counters for ${bossName} (Tera ${teraType})</h2>
+        <p class="boss-info">Detected Raid Boss as a <strong>${bossAttackerType.charAt(0).toUpperCase() + bossAttackerType.slice(1)}</strong> attacker.</p>
         <div class="pokedex-table-container">
             <table class="pokedex-table">
                 <thead id="raid-table-head">
                     <tr>
                         <th data-sort="name">Name</th>
                         <th data-sort="score">Score</th>
+                        <th>Abilities</th>
                         <th>Offensive Advantage</th>
                         <th>Defensive Advantage</th>
                         <th data-sort="stat-hp">HP</th>
@@ -264,18 +281,19 @@ function renderRaidCounters(counters) {
     `;
 
     if (counters.length === 0) {
-        tableHTML += '<tr><td colspan="10">No ideal counters found. Consider Pokémon with neutral matchups.</td></tr>';
+        tableHTML += '<tr><td colspan="11">No ideal counters found. Consider Pokémon with neutral matchups.</td></tr>';
     } else {
-        counters.forEach(counter => {
+        counters.slice(0, 15).forEach(counter => { // Show top 15
             tableHTML += `
                 <tr>
                     <td>
                         <strong>${counter.pokemon.name}</strong><br>
                         ${counter.pokemon.types.map(t => `<span class="type-badge-small" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}
                     </td>
-                    <td>${counter.score}</td>
-                    <td><span class="reason">${counter.offensiveReasons.length > 0 ? `Super-effective ${counter.offensiveReasons.join(', ')}` : 'None'}</span></td>
-                    <td><span class="reason">${counter.defensiveReasons.length > 0 ? counter.defensiveReasons.join(', ') : 'None'}</span></td>
+                    <td>${counter.score.toFixed(1)}</td>
+                    <td><span class="reason">${Object.values(counter.pokemon.abilities).join(' / ')}</span></td>
+                    <td><span class="reason">${counter.offensiveReason || 'None'}</span></td>
+                    <td><span class="reason">${counter.defensiveReason || 'None'}</span></td>
                     <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.hp)}">${counter.pokemon.baseStats.hp}</span></td>
                     <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.atk)}">${counter.pokemon.baseStats.atk}</span></td>
                     <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.def)}">${counter.pokemon.baseStats.def}</span></td>
@@ -302,9 +320,10 @@ function renderRaidCounters(counters) {
                 currentSort.ascending = !currentSort.ascending;
             } else {
                 currentSort.column = column;
-                currentSort.ascending = true;
+                // Default score to descending, others to ascending
+                currentSort.ascending = column !== 'score';
             }
-            sortAndRenderCounters();
+            sortAndRenderCounters(bossAttackerType);
         });
     }
 }
