@@ -80,6 +80,20 @@
             font-weight: 500;
         }
 
+        /* Stat level indicators */
+        .stat-value {
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        }
+        .stat-excellent { background-color: #28a745; } /* Vibrant Green */
+        .stat-great { background-color: #8BC34A; }    /* Lighter Green */
+        .stat-good { background-color: #007bff; }     /* Blue */
+        .stat-average { background-color: #6c757d; }  /* Gray */
+        .stat-low { background-color: #d9534f; }      /* Red */
+
         .weak-4x { background-color: #B71C1C; }
         .weak-2x { background-color: #d9534f; }
         .resist-25x { background-color: #4CAF50; }
@@ -145,6 +159,14 @@ function populateDatalist(list) {
 function getPokemonByName(name) {
     if (!name) return null;
     return pokemonData.find(p => p.name.toLowerCase() === name.toLowerCase());
+}
+
+function getStatClass(statValue) {
+    if (statValue >= 120) return 'stat-excellent';
+    if (statValue >= 100) return 'stat-great';
+    if (statValue >= 80) return 'stat-good';
+    if (statValue >= 60) return 'stat-average';
+    return 'stat-low';
 }
 
 function calculateDefensiveProfile(types) {
@@ -244,12 +266,12 @@ function renderResults(team) {
 
                 <h4>Base Stats</h4>
                 <div class="stats-grid">
-                    <span>HP: ${pokemon.baseStats.hp}</span>
-                    <span>Atk: ${pokemon.baseStats.atk}</span>
-                    <span>Def: ${pokemon.baseStats.def}</span>
-                    <span>SpA: ${pokemon.baseStats.spa}</span>
-                    <span>SpD: ${pokemon.baseStats.spd}</span>
-                    <span>Spe: ${pokemon.baseStats.spe}</span>
+                    <span>HP: <span class="stat-value ${getStatClass(pokemon.baseStats.hp)}">${pokemon.baseStats.hp}</span></span>
+                    <span>Atk: <span class="stat-value ${getStatClass(pokemon.baseStats.atk)}">${pokemon.baseStats.atk}</span></span>
+                    <span>Def: <span class="stat-value ${getStatClass(pokemon.baseStats.def)}">${pokemon.baseStats.def}</span></span>
+                    <span>SpA: <span class="stat-value ${getStatClass(pokemon.baseStats.spa)}">${pokemon.baseStats.spa}</span></span>
+                    <span>SpD: <span class="stat-value ${getStatClass(pokemon.baseStats.spd)}">${pokemon.baseStats.spd}</span></span>
+                    <span>Spe: <span class="stat-value ${getStatClass(pokemon.baseStats.spe)}">${pokemon.baseStats.spe}</span></span>
                 </div>
                 
                 <h4>Defensive Matchups</h4>
