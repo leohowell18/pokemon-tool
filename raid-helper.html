@@ -12,7 +12,7 @@
             line-height: 1.6;
         }
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 20px auto;
             padding: 1rem 2rem;
             background: #fff;
@@ -28,6 +28,12 @@
             grid-template-columns: 2fr 1fr;
             gap: 20px;
             margin-bottom: 20px;
+            align-items: center;
+        }
+        .raid-slot label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
         }
         .raid-slot input, .raid-slot select {
             width: 100%;
@@ -51,23 +57,29 @@
         }
         #find-counters-btn:hover { background-color: #4cae4c; }
         
-        #results-output, #error-message {
+        #error-message {
              text-align: center;
              font-weight: bold;
              color: #d9534f;
+             margin-top: 1rem;
         }
-
-        .counter-card {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 5px solid #007bff;
-        }
-        .counter-card h3 { margin-top: 0; display: inline-block; margin-right: 10px; }
-        .counter-card .reason { font-style: italic; color: #555; }
         
-        .type-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; color: white; font-weight: 500; margin-right: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
+        .type-badge-small { display: inline-block; padding: 2px 8px; font-size: 0.85em; border-radius: 4px; color: white; font-weight: 500; margin: 0 2px; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); }
+        .stat-value { padding: 2px 8px; border-radius: 4px; color: white; font-weight: bold; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); }
+        .stat-excellent { background-color: #28a745; }
+        .stat-great { background-color: #8BC34A; }
+        .stat-good { background-color: #007bff; }
+        .stat-average { background-color: #6c757d; }
+        .stat-low { background-color: #d9534f; }
+
+        /* Counter Table Styling */
+        .pokedex-table-container { overflow-x: auto; margin-top: 1.5rem;}
+        .pokedex-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .pokedex-table th, .pokedex-table td { padding: 10px; border: 1px solid #ddd; text-align: left; white-space: nowrap; }
+        .pokedex-table th { background-color: #f2f2f2; cursor: pointer; user-select: none; position: sticky; top: 0; }
+        .pokedex-table th:hover { background-color: #e2e2e2; }
+        .pokedex-table td .reason { font-size: 0.85em; display: block; white-space: normal; }
+
     </style>
 </head>
 <body>
@@ -76,10 +88,12 @@
     <h1>Tera Raid Counter Finder</h1>
     <div id="raid-input-grid">
         <div class="raid-slot">
+            <label for="raid-boss-name">Raid Boss</label>
             <input type="text" id="raid-boss-name" list="pokemon-list" placeholder="Enter Raid Boss Pokémon...">
             <datalist id="pokemon-list"></datalist>
         </div>
         <div class="raid-slot">
+            <label for="tera-type-select">Tera Type</label>
             <select id="tera-type-select"></select>
         </div>
     </div>
@@ -101,6 +115,8 @@ const TYPE_CHART = { "Normal": {"Rock": 0.5, "Ghost": 0, "Steel": 0.5}, "Fire": 
 const ALL_TYPES = Object.keys(TYPE_CHART);
 const TYPE_COLORS = { "Normal": "#A8A77A", "Fire": "#EE8130", "Water": "#6390F0", "Electric": "#F7D02C", "Grass": "#7AC74C", "Ice": "#96D9D6", "Fighting": "#C22E28", "Poison": "#A33EA1", "Ground": "#E2BF65", "Flying": "#A98FF3", "Psychic": "#F95587", "Bug": "#A6B91A", "Rock": "#B6A136", "Ghost": "#735797", "Dragon": "#6F35FC", "Dark": "#705746", "Steel": "#B7B7CE", "Fairy": "#D685AD" };
 let pokemonData = [];
+let potentialCounters = [];
+let currentSort = { column: 'score', ascending: false };
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -121,12 +137,12 @@ function populateTeraTypeSelect() {
     select.innerHTML = ALL_TYPES.map(type => `<option value="${type}">Tera ${type}</option>`).join('');
 }
 
-// --- ANALYSIS LOGIC ---
 function getPokemonByName(name) {
     if (!name) return null;
     return pokemonData.find(p => p.name.toLowerCase() === name.toLowerCase());
 }
 
+// --- ANALYSIS & SORTING LOGIC ---
 function findTeraRaidCounters() {
     const errorMessage = document.getElementById('error-message');
     const resultsOutput = document.getElementById('results-output');
@@ -144,78 +160,161 @@ function findTeraRaidCounters() {
     }
 
     const bossOriginalTypes = raidBoss.types;
-    let potentialCounters = [];
+    potentialCounters = []; // Reset the list
 
     pokemonData.forEach(counter => {
         let score = 0;
-        let reasons = [];
+        let offensiveReasons = [];
+        let defensiveReasons = [];
 
         // 1. Offensive Score (vs. Tera Type)
         counter.types.forEach(counterAttackType => {
-            const offensiveProfile = TYPE_CHART[counterAttackType] || {};
-            const multiplier = offensiveProfile[teraType] ?? 1;
+            const multiplier = TYPE_CHART[counterAttackType]?.[teraType] ?? 1;
             if (multiplier === 2) {
                 score += 3; // Heavily reward super-effective STAB
-                reasons.push(`Hits ${teraType} for 2x damage`);
+                offensiveReasons.push(counterAttackType);
             }
         });
 
         // 2. Defensive Score (vs. Boss's Original Types)
-        let totalDefensiveMultiplier = 1;
         bossOriginalTypes.forEach(bossAttackType => {
             let defensiveMultiplier = 1;
             counter.types.forEach(counterDefendType => {
                 defensiveMultiplier *= (TYPE_CHART[bossAttackType]?.[counterDefendType] ?? 1);
             });
 
-            if(defensiveMultiplier === 0) {
+            if (defensiveMultiplier === 0) {
                 score += 2; // Reward immunity
-                reasons.push(`Immune to ${bossAttackType}`);
+                defensiveReasons.push(`Immune to ${bossAttackType}`);
             } else if (defensiveMultiplier <= 0.5) {
                 score += 1; // Reward resistance
-                reasons.push(`Resists ${bossAttackType}`);
+                defensiveReasons.push(`Resists ${bossAttackType}`);
             } else if (defensiveMultiplier >= 2) {
                 score -= 4; // Heavily penalize weakness
             }
         });
         
-        if (score > 0) {
+        if (score > 2) { // Set a higher threshold for better results
             potentialCounters.push({
                 pokemon: counter,
                 score: score,
-                reasons: reasons
+                offensiveReasons: offensiveReasons,
+                defensiveReasons: defensiveReasons,
             });
         }
     });
-
-    // Sort counters by score (highest first) and take the top 10
-    const topCounters = potentialCounters.sort((a, b) => b.score - a.score).slice(0, 10);
-
-    renderRaidCounters(raidBoss, teraType, topCounters);
+    
+    currentSort = { column: 'score', ascending: false }; // Default sort
+    sortAndRenderCounters();
 }
 
+function sortAndRenderCounters() {
+    const { column, ascending } = currentSort;
+    
+    potentialCounters.sort((a, b) => {
+        let valA, valB;
+        if (column.startsWith('stat-')) {
+            const stat = column.split('-')[1];
+            valA = a.pokemon.baseStats[stat];
+            valB = b.pokemon.baseStats[stat];
+        } else if (column === 'name') {
+            valA = a.pokemon.name;
+            valB = b.pokemon.name;
+        } else { // score
+            valA = a.score;
+            valB = b.score;
+        }
+
+        if (typeof valA === 'string') {
+            return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+            return ascending ? valA - valB : valB - valA;
+        }
+    });
+    
+    renderRaidCounters(potentialCounters);
+}
+
+
 // --- RENDERING RESULTS ---
-function renderRaidCounters(boss, teraType, counters) {
+function renderRaidCounters(counters) {
     const resultsOutput = document.getElementById('results-output');
-    let html = `<h2>Top Counters for ${boss.name} (Tera ${teraType})</h2>`;
+    const bossName = document.getElementById('raid-boss-name').value;
+    const teraType = document.getElementById('tera-type-select').value;
+    
+    let tableHTML = `
+        <h2>Top Counters for ${bossName} (Tera ${teraType})</h2>
+        <div class="pokedex-table-container">
+            <table class="pokedex-table">
+                <thead id="raid-table-head">
+                    <tr>
+                        <th data-sort="name">Name</th>
+                        <th data-sort="score">Score</th>
+                        <th>Offensive Advantage</th>
+                        <th>Defensive Advantage</th>
+                        <th data-sort="stat-hp">HP</th>
+                        <th data-sort="stat-atk">Atk</th>
+                        <th data-sort="stat-def">Def</th>
+                        <th data-sort="stat-spa">SpA</th>
+                        <th data-sort="stat-spd">SpD</th>
+                        <th data-sort="stat-spe">Spe</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
 
     if (counters.length === 0) {
-        html += '<p>No ideal counters found. Consider Pokémon with neutral matchups and high stats.</p>';
-        resultsOutput.innerHTML = html;
-        return;
+        tableHTML += '<tr><td colspan="10">No ideal counters found. Consider Pokémon with neutral matchups.</td></tr>';
+    } else {
+        counters.forEach(counter => {
+            tableHTML += `
+                <tr>
+                    <td>
+                        <strong>${counter.pokemon.name}</strong><br>
+                        ${counter.pokemon.types.map(t => `<span class="type-badge-small" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}
+                    </td>
+                    <td>${counter.score}</td>
+                    <td><span class="reason">${counter.offensiveReasons.length > 0 ? `Super-effective ${counter.offensiveReasons.join(', ')}` : 'None'}</span></td>
+                    <td><span class="reason">${counter.defensiveReasons.length > 0 ? counter.defensiveReasons.join(', ') : 'None'}</span></td>
+                    <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.hp)}">${counter.pokemon.baseStats.hp}</span></td>
+                    <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.atk)}">${counter.pokemon.baseStats.atk}</span></td>
+                    <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.def)}">${counter.pokemon.baseStats.def}</span></td>
+                    <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.spa)}">${counter.pokemon.baseStats.spa}</span></td>
+                    <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.spd)}">${counter.pokemon.baseStats.spd}</span></td>
+                    <td><span class="stat-value ${getStatClass(counter.pokemon.baseStats.spe)}">${counter.pokemon.baseStats.spe}</span></td>
+                </tr>
+            `;
+        });
     }
 
-    counters.forEach(counter => {
-        html += `
-            <div class="counter-card">
-                <h3>${counter.pokemon.name}</h3>
-                ${counter.pokemon.types.map(t => `<span class="type-badge" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}
-                <p class="reason"><strong>Reasoning:</strong> ${counter.reasons.join(', ')}.</p>
-            </div>
-        `;
-    });
+    tableHTML += '</tbody></table></div>';
+    resultsOutput.innerHTML = tableHTML;
 
-    resultsOutput.innerHTML = html;
+    // Attach listener to the new table head
+    const tableHead = document.getElementById('raid-table-head');
+    if(tableHead) {
+        tableHead.addEventListener('click', (event) => {
+            const header = event.target.closest('th');
+            if (!header || !header.dataset.sort) return;
+
+            const column = header.dataset.sort;
+            if (currentSort.column === column) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.column = column;
+                currentSort.ascending = true;
+            }
+            sortAndRenderCounters();
+        });
+    }
+}
+
+function getStatClass(statValue) {
+    if (statValue >= 120) return 'stat-excellent';
+    if (statValue >= 100) return 'stat-great';
+    if (statValue >= 80) return 'stat-good';
+    if (statValue >= 60) return 'stat-average';
+    return 'stat-low';
 }
 
 </script>
