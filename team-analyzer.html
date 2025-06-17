@@ -80,7 +80,6 @@
             font-weight: 500;
         }
 
-        /* Stat level indicators */
         .stat-value {
             padding: 2px 8px;
             border-radius: 4px;
@@ -88,11 +87,11 @@
             font-weight: bold;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
         }
-        .stat-excellent { background-color: #28a745; } /* Vibrant Green */
-        .stat-great { background-color: #8BC34A; }    /* Lighter Green */
-        .stat-good { background-color: #007bff; }     /* Blue */
-        .stat-average { background-color: #6c757d; }  /* Gray */
-        .stat-low { background-color: #d9534f; }      /* Red */
+        .stat-excellent { background-color: #28a745; }
+        .stat-great { background-color: #8BC34A; }
+        .stat-good { background-color: #007bff; }
+        .stat-average { background-color: #6c757d; }
+        .stat-low { background-color: #d9534f; }
 
         .weak-4x { background-color: #B71C1C; }
         .weak-2x { background-color: #d9534f; }
@@ -120,10 +119,16 @@
     <div id="results-output"></div>
 </div>
 
+<!-- This first script tag loads your external data file. 
+     The browser will execute this file, making the POKEMON_DATA constant available. -->
+<script src="pokedex-data.js"></script>
+
+<!-- This second script runs *after* the data has been loaded,
+     so it can access and use the POKEMON_DATA constant. -->
 <script>
 // --- DATA AND CONFIGURATION ---
 
-const POKEMON_DATA = [{"name":"Abomasnow","types":["Grass","Ice"],"baseStats":{"hp":90,"atk":92,"def":75,"spa":92,"spd":85,"spe":60},"abilities":{"0":"Snow Warning","H":"Soundproof"}},{"name":"Abra","types":["Psychic"],"baseStats":{"hp":25,"atk":20,"def":15,"spa":105,"spd":55,"spe":90},"abilities":{"0":"Synchronize","1":"Inner Focus","H":"Magic Guard"}},{"name":"Absol","types":["Dark"],"baseStats":{"hp":65,"atk":130,"def":60,"spa":75,"spd":60,"spe":75},"abilities":{"0":"Pressure","1":"Super Luck","H":"Justified"}},{"name":"Accelgor","types":["Bug"],"baseStats":{"hp":80,"atk":70,"def":40,"spa":100,"spd":60,"spe":145},"abilities":{"0":"Hydration","1":"Sticky Hold","H":"Unburden"}},{"name":"Aegislash-shield","types":["Steel","Ghost"],"baseStats":{"hp":60,"atk":50,"def":140,"spa":50,"spd":140,"spe":60},"abilities":{"0":"Stance Change"}},{"name":"Aerodactyl","types":["Rock","Flying"],"baseStats":{"hp":80,"atk":105,"def":65,"spa":60,"spd":75,"spe":130},"abilities":{"0":"Rock Head","1":"Pressure","H":"Unnerve"}},{"name":"Aggron","types":["Steel","Rock"],"baseStats":{"hp":70,"atk":110,"def":180,"spa":60,"spd":60,"spe":50},"abilities":{"0":"Sturdy","1":"Rock Head","H":"Heavy Metal"}},{"name":"Aipom","types":["Normal"],"baseStats":{"hp":55,"atk":70,"def":55,"spa":40,"spd":55,"spe":85},"abilities":{"0":"Run Away","1":"Pickup","H":"Skill Link"}},{"name":"Alakazam","types":["Psychic"],"baseStats":{"hp":55,"atk":50,"def":45,"spa":135,"spd":95,"spe":120},"abilities":{"0":"Synchronize","1":"Inner Focus","H":"Magic Guard"}},{"name":"Alcremie","types":["Fairy"],"baseStats":{"hp":65,"atk":60,"def":75,"spa":110,"spd":121,"spe":64},"abilities":{"0":"Sweet Veil","H":"Aroma Veil"}},{"name":"Alomomola","types":["Water"],"baseStats":{"hp":165,"atk":75,"def":80,"spa":40,"spd":45,"spe":65},"abilities":{"0":"Healer","1":"Hydration","H":"Regenerator"}},{"name":"Altaria","types":["Dragon","Flying"],"baseStats":{"hp":75,"atk":70,"def":90,"spa":70,"spd":105,"spe":80},"abilities":{"0":"Natural Cure","H":"Cloud Nine"}}];
+// The POKEMON_DATA constant is now loaded from the 'pokedex-data.js' file.
 
 const TYPE_CHART = { "Normal": {"Rock": 0.5, "Ghost": 0, "Steel": 0.5}, "Fire": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 2, "Bug": 2, "Rock": 0.5, "Dragon": 0.5, "Steel": 2}, "Water": {"Fire": 2, "Water": 0.5, "Grass": 0.5, "Ground": 2, "Rock": 2, "Dragon": 0.5}, "Electric": {"Water": 2, "Electric": 0.5, "Grass": 0.5, "Ground": 0, "Flying": 2, "Dragon": 0.5}, "Grass": {"Fire": 0.5, "Water": 2, "Grass": 0.5, "Poison": 0.5, "Ground": 2, "Flying": 0.5, "Bug": 0.5, "Rock": 2, "Dragon": 0.5, "Steel": 0.5}, "Ice": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 0.5, "Ground": 2, "Flying": 2, "Dragon": 2, "Steel": 0.5}, "Fighting": {"Normal": 2, "Ice": 2, "Poison": 0.5, "Flying": 0.5, "Psychic": 0.5, "Bug": 0.5, "Rock": 2, "Ghost": 0, "Dark": 2, "Steel": 2, "Fairy": 0.5}, "Poison": {"Grass": 2, "Poison": 0.5, "Ground": 0.5, "Rock": 0.5, "Ghost": 0.5, "Steel": 0, "Fairy": 2}, "Ground": {"Fire": 2, "Electric": 2, "Grass": 0.5, "Poison": 2, "Flying": 0, "Bug": 0.5, "Rock": 2, "Steel": 2}, "Flying": {"Electric": 0.5, "Grass": 2, "Fighting": 2, "Bug": 2, "Rock": 0.5, "Steel": 0.5}, "Psychic": {"Fighting": 2, "Poison": 2, "Psychic": 0.5, "Dark": 0, "Steel": 0.5}, "Bug": {"Fire": 0.5, "Grass": 2, "Fighting": 0.5, "Poison": 0.5, "Flying": 0.5, "Psychic": 2, "Ghost": 0.5, "Dark": 2, "Steel": 0.5, "Fairy": 0.5}, "Rock": {"Fire": 2, "Ice": 2, "Fighting": 0.5, "Ground": 0.5, "Flying": 2, "Bug": 2, "Steel": 0.5}, "Ghost": {"Normal": 0, "Psychic": 2, "Ghost": 2, "Dark": 0.5}, "Dragon": {"Dragon": 2, "Steel": 0.5, "Fairy": 0}, "Dark": {"Fighting": 0.5, "Psychic": 2, "Ghost": 2, "Dark": 0.5, "Fairy": 0.5}, "Steel": {"Fire": 0.5, "Water": 0.5, "Electric": 0.5, "Ice": 2, "Rock": 2, "Steel": 0.5, "Fairy": 2}, "Fairy": {"Fire": 0.5, "Fighting": 2, "Poison": 0.5, "Dragon": 2, "Dark": 2, "Steel": 0.5} };
 const ALL_TYPES = Object.keys(TYPE_CHART);
