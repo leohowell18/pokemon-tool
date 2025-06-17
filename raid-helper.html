@@ -43,6 +43,14 @@
             border-radius: 6px;
             box-sizing: border-box;
         }
+        .filter-controls {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            text-align: center;
+        }
         #controls { text-align: center; margin: 30px 0; }
         #find-counters-btn {
             padding: 12px 30px;
@@ -57,14 +65,21 @@
         }
         #find-counters-btn:hover { background-color: #4cae4c; }
         
-        #error-message, .boss-info {
+        #error-message, .boss-info-container {
              text-align: center;
              font-weight: bold;
              margin-top: 1rem;
         }
         #error-message { color: #d9534f; }
-        .boss-info { color: #555; }
+        .boss-info-container { 
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .boss-info { color: #555; font-style: italic;}
         
+        .type-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; color: white; font-weight: 500; margin-right: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
         .type-badge-small { display: inline-block; padding: 2px 8px; font-size: 0.85em; border-radius: 4px; color: white; font-weight: 500; margin: 0 2px; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); }
         .stat-value { padding: 2px 8px; border-radius: 4px; color: white; font-weight: bold; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); }
         .stat-excellent { background-color: #28a745; }
@@ -80,6 +95,13 @@
         .pokedex-table th { background-color: #f2f2f2; cursor: pointer; user-select: none; position: sticky; top: 0; }
         .pokedex-table th:hover { background-color: #e2e2e2; }
         .pokedex-table td .reason { font-size: 0.85em; display: block; white-space: normal; max-width: 250px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
 
     </style>
 </head>
@@ -98,6 +120,11 @@
             <select id="tera-type-select"></select>
         </div>
     </div>
+    <div class="filter-controls">
+        <label>
+            <input type="checkbox" id="filter-sv"> Filter for Pokémon in Scarlet & Violet
+        </label>
+    </div>
     
     <div id="controls">
         <button id="find-counters-btn">Find Counters</button>
@@ -115,6 +142,8 @@
 const TYPE_CHART = { "Normal": {"Rock": 0.5, "Ghost": 0, "Steel": 0.5}, "Fire": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 2, "Bug": 2, "Rock": 0.5, "Dragon": 0.5, "Steel": 2}, "Water": {"Fire": 2, "Water": 0.5, "Grass": 0.5, "Ground": 2, "Rock": 2, "Dragon": 0.5}, "Electric": {"Water": 2, "Electric": 0.5, "Grass": 0.5, "Ground": 0, "Flying": 2, "Dragon": 0.5}, "Grass": {"Fire": 0.5, "Water": 2, "Grass": 0.5, "Poison": 0.5, "Ground": 2, "Flying": 0.5, "Bug": 0.5, "Rock": 2, "Dragon": 0.5, "Steel": 0.5}, "Ice": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 0.5, "Ground": 2, "Flying": 2, "Dragon": 2, "Steel": 0.5}, "Fighting": {"Normal": 2, "Ice": 2, "Poison": 0.5, "Flying": 0.5, "Psychic": 0.5, "Bug": 0.5, "Rock": 2, "Ghost": 0, "Dark": 2, "Steel": 2, "Fairy": 0.5}, "Poison": {"Grass": 2, "Poison": 0.5, "Ground": 0.5, "Rock": 0.5, "Ghost": 0.5, "Steel": 0, "Fairy": 2}, "Ground": {"Fire": 2, "Electric": 2, "Grass": 0.5, "Poison": 2, "Flying": 0, "Bug": 0.5, "Rock": 2, "Steel": 2}, "Flying": {"Electric": 0.5, "Grass": 2, "Fighting": 2, "Bug": 2, "Rock": 0.5, "Steel": 0.5}, "Psychic": {"Fighting": 2, "Poison": 2, "Psychic": 0.5, "Dark": 0, "Steel": 0.5}, "Bug": {"Fire": 0.5, "Grass": 2, "Fighting": 0.5, "Poison": 0.5, "Flying": 0.5, "Psychic": 2, "Ghost": 0.5, "Dark": 2, "Steel": 0.5, "Fairy": 0.5}, "Rock": {"Fire": 2, "Ice": 2, "Fighting": 0.5, "Ground": 0.5, "Flying": 2, "Bug": 2, "Steel": 0.5}, "Ghost": {"Normal": 0, "Psychic": 2, "Ghost": 2, "Dark": 0.5}, "Dragon": {"Dragon": 2, "Steel": 0.5, "Fairy": 0}, "Dark": {"Fighting": 0.5, "Psychic": 2, "Ghost": 2, "Dark": 0.5, "Fairy": 0.5}, "Steel": {"Fire": 0.5, "Water": 0.5, "Electric": 0.5, "Ice": 2, "Rock": 2, "Steel": 0.5, "Fairy": 2}, "Fairy": {"Fire": 0.5, "Fighting": 2, "Poison": 0.5, "Dragon": 2, "Dark": 2, "Steel": 0.5} };
 const ALL_TYPES = Object.keys(TYPE_CHART);
 const TYPE_COLORS = { "Normal": "#A8A77A", "Fire": "#EE8130", "Water": "#6390F0", "Electric": "#F7D02C", "Grass": "#7AC74C", "Ice": "#96D9D6", "Fighting": "#C22E28", "Poison": "#A33EA1", "Ground": "#E2BF65", "Flying": "#A98FF3", "Psychic": "#F95587", "Bug": "#A6B91A", "Rock": "#B6A136", "Ghost": "#735797", "Dragon": "#6F35FC", "Dark": "#705746", "Steel": "#B7B7CE", "Fairy": "#D685AD" };
+const SCARLET_VIOLET_DEX = new Set(["Sprigatito","Floragato","Meowscarada","Fuecoco","Crocalor","Skeledirge","Quaxly","Quaxwell","Quaquaval","Lechonk","Oinkologne","Tarountula","Spidops","Nymble","Lokix","Pawmi","Pawmo","Pawmot","Tandemaus","Maushold","Fidough","Dachsbun","Smoliv","Dolliv","Arboliva","Squawkabilly","Nacli","Naclstack","Garganacl","Charcadet","Armarouge","Ceruledge","Tadbulb","Bellibolt","Wattrel","Kilowattrel","Maschiff","Mabosstiff","Shroodle","Grafaiai","Bramblin","Brambleghast","Toedscool","Toedscruel","Klawf","Capsakid","Scovillain","Rellor","Rabsca","Flittle","Espathra","Tinkatink","Tinkatuff","Tinkaton","Wiglett","Wugtrio","Bombirdier","Finizen","Palafin","Varoom","Revavroom","Cyclizar","Orthworm","Glimmet","Glimmora","Greavard","Houndstone","Flamigo","Cetoddle","Cetitan","Veluza","Dondozo","Tatsugiri","Annihilape","Clodsire","Farigiraf","Dudunsparce","Kingambit","Great Tusk","Scream Tail","Brute Bonnet","Flutter Mane","Slither Wing","Sandy Shocks","Iron Treads","Iron Bundle","Iron Hands","Iron Jugulis","Iron Moth","Iron Thorns","Iron Valiant","Frigibax","Arctibax","Baxcalibur","Gimmighoul","Gholdengo","Wo-Chien","Chien-Pao","Ting-Lu","Chi-Yu","Roaring Moon","Iron Boulder","Koraidon","Miraidon","Walking Wake","Iron Leaves","Dipplin","Poltchageist","Sinistcha","Okidogi","Munkidori","Fezandipiti","Ogerpon","Pichu","Pikachu","Raichu","Hoppip","Skiploom","Jumpluff","Fletchling","Fletchinder","Talonflame","Pawniard","Bisharp","Kingambit","Wooper","Clodsire","Murkrow","Honchkrow","Happiny","Chansey","Blissey","Azurill","Marill","Azumarill","Surskit","Masquerain","Buizel","Floatzel","Psyduck","Golduck","Chewtle","Drednaw","Igglybuff","Jigglypuff","Wigglytuff","Tandemaus","Maushold","Pichu","Pikachu","Raichu","Slakoth","Vigoroth","Slaking","Bounsweet","Steenee","Tsareena","Smoliv","Dolliv","Arboliva","Bonsly","Sudowoodo","Rockruff","Lycanroc","Rolycoly","Carkol","Coalossal","Shinx","Luxio","Luxray","Starly","Staravia","Staraptor","Oricorio","Mareep","Flaaffy","Ampharos","Petilil","Lilligant","Shroomish","Breloom","Applin","Flapple","Appletun","Dipplin","Spoink","Grumpig","Misdreavus","Mismagius","Makuhita","Hariyama","Crabrawler","Salandit","Salazzle","Phanpy","Donphan","Cufant","Copperajah","Gible","Gabite","Garchomp","Nacli","Naclstack","Garganacl","Wingull","Pelipper","Magikarp","Gyarados","Arrokuda","Barraskewda","Basculin","Basculegion","Gulpin","Swalot","Meowth","Persian","Drifloon","Drifblim","Flabébé","Floette","Florges","Diglett","Dugtrio","Torkoal","Numel","Camerupt","Bronzor","Bronzong","Axew","Fraxure","Haxorus","Mankey","Primeape","Annihilape","Meditite","Medicham","Riolu","Lucario","Charcadet","Armarouge","Ceruledge","Barboach","Whiscash","Tadbulb","Bellibolt","Goomy","Sliggoo","Goodra","Croagunk","Toxicroak","Wattrel","Kilowattrel","Eevee","Vaporeon","Jolteon","Flareon","Espeon","Umbreon","Leafeon","Glaceon","Sylveon","Dunsparce","Dudunsparce","Zorua","Zoroark","Sneasel","Weavile","Murkrow","Honchkrow","Gothita","Gothorita","Gothitelle","Sinistea","Polteageist","Mimikyu","Klefki","Indeedee","Bramblin","Brambleghast","Toedscool","Toedscruel","Tropius","Fomantis","Lurantis","Klawf","Capsakid","Scovillain","Cacnea","Cacturne","Rellor","Rabsca","Venonat","Venomoth","Pineco","Forretress","Scyther","Scizor","Heracross","Flittle","Espathra","Hippopotas","Hippowdon","Sandile","Krokorok","Krookodile","Silicobra","Sandaconda","Mudbray","Mudsdale","Shroodle","Grafaiai","Tadbulb","Bellibolt","Torkoal","Numel","Camerupt","Sizzlipede","Centiskorch","Larvesta","Volcarona","Bagon","Shelgon","Salamence","Litleo","Pyroar","Skwovet","Greedent","Oricorio","Stunky","Skuntank","Zorua","Zoroark","Sneasel","Weavile","Murkrow","Honchkrow","Deino","Zweilous","Hydreigon","Dreepy","Drakloak","Dragapult","Passimian","Oranguru","Larvitar","Pupitar","Tyranitar","Stonjourner","Eiscue","Pincurchin","Sandygast","Palossand","Slowpoke","Slowbro","Slowking","Shellos","Gastrodon","Shellder","Cloyster","Qwilfish","Overqwil","Luvdisc","Finizen","Palafin","Bruxish","Alomomola","Skrelp","Dragalge","Clauncher","Clawitzer","Tynamo","Eelektrik","Eelektross","Mareanie","Toxapex","Lumineon","Dratini","Dragonair","Dragonite","Iron Treads","Iron Bundle","Iron Hands","Iron Jugulis","Iron Moth","Iron Thorns","Iron Valiant","Frigibax","Arctibax","Baxcalibur","Gimmighoul","Gholdengo","Wo-Chien","Chien-Pao","Ting-Lu","Chi-Yu","Roaring Moon","Koraidon","Miraidon"]);
+
 let pokemonData = [];
 let potentialCounters = [];
 let currentSort = { column: 'score', ascending: false };
@@ -152,6 +181,7 @@ function findTeraRaidCounters() {
 
     const bossName = document.getElementById('raid-boss-name').value;
     const teraType = document.getElementById('tera-type-select').value;
+    const filterSV = document.getElementById('filter-sv').checked;
     
     const raidBoss = getPokemonByName(bossName);
 
@@ -160,18 +190,21 @@ function findTeraRaidCounters() {
         return;
     }
     
-    // Auto-detect boss attacker type
-    let bossAttackerType = 'mixed';
-    if (raidBoss.baseStats.atk > raidBoss.baseStats.spa + 15) {
-        bossAttackerType = 'physical';
-    } else if (raidBoss.baseStats.spa > raidBoss.baseStats.atk + 15) {
-        bossAttackerType = 'special';
-    }
+    // Auto-detect boss attacker and defender types
+    let bossAttackerType = 'Mixed';
+    if (raidBoss.baseStats.atk > raidBoss.baseStats.spa + 15) { bossAttackerType = 'Physical'; }
+    else if (raidBoss.baseStats.spa > raidBoss.baseStats.atk + 15) { bossAttackerType = 'Special'; }
+    
+    let bossDefenderType = 'Mixed Wall';
+    if (raidBoss.baseStats.def > raidBoss.baseStats.spd + 15) { bossDefenderType = 'Physical Wall'; }
+    else if (raidBoss.baseStats.spd > raidBoss.baseStats.def + 15) { bossDefenderType = 'Special Wall'; }
 
     const bossOriginalTypes = raidBoss.types;
     potentialCounters = []; // Reset the list
+    
+    let sourceData = filterSV ? pokemonData.filter(p => SCARLET_VIOLET_DEX.has(p.name)) : pokemonData;
 
-    pokemonData.forEach(counter => {
+    sourceData.forEach(counter => {
         let score = 0;
         let offensiveReasons = [];
         let defensiveReasons = [];
@@ -202,10 +235,9 @@ function findTeraRaidCounters() {
         const counterStats = counter.baseStats;
         const bossStats = raidBoss.baseStats;
 
-        if (bossAttackerType === 'physical' && counterStats.def > 100) { score += 1; defensiveReasons.push('High Defense'); }
-        if (bossAttackerType === 'special' && counterStats.spd > 100) { score += 1; defensiveReasons.push('High Sp. Defense'); }
+        if (bossAttackerType === 'Physical' && counterStats.def > 100) { score += 1; defensiveReasons.push('High Defense'); }
+        if (bossAttackerType === 'Special' && counterStats.spd > 100) { score += 1; defensiveReasons.push('High Sp. Defense'); }
 
-        // Bonus for targeting the boss's weaker defensive stat
         if (bossStats.def < bossStats.spd && counterStats.atk > counterStats.spa + 15) { score += 1.5; offensiveReasons.push('Targets weaker Defense'); }
         if (bossStats.spd < bossStats.def && counterStats.spa > counterStats.atk + 15) { score += 1.5; offensiveReasons.push('Targets weaker Sp. Defense'); }
         
@@ -220,10 +252,10 @@ function findTeraRaidCounters() {
     });
     
     currentSort = { column: 'score', ascending: false }; // Default sort
-    sortAndRenderCounters(bossAttackerType);
+    sortAndRenderCounters(raidBoss, bossAttackerType, bossDefenderType);
 }
 
-function sortAndRenderCounters(bossAttackerType = 'mixed') {
+function sortAndRenderCounters(raidBoss, bossAttackerType, bossDefenderType) {
     const { column, ascending } = currentSort;
     
     potentialCounters.sort((a, b) => {
@@ -247,19 +279,34 @@ function sortAndRenderCounters(bossAttackerType = 'mixed') {
         }
     });
     
-    renderRaidCounters(potentialCounters, bossAttackerType);
+    renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
 }
 
 
 // --- RENDERING RESULTS ---
-function renderRaidCounters(counters, bossAttackerType) {
+function renderRaidCounters(boss, counters, bossAttackerType, bossDefenderType) {
     const resultsOutput = document.getElementById('results-output');
-    const bossName = document.getElementById('raid-boss-name').value;
-    const teraType = document.getElementById('tera-type-select').value;
     
+    let bossInfoHTML = `
+        <div class="boss-info-container">
+            <h2>Raid Boss: ${boss.name}</h2>
+            <div class="stats-grid">
+                <span>HP: <span class="stat-value ${getStatClass(boss.baseStats.hp)}">${boss.baseStats.hp}</span></span>
+                <span>Atk: <span class="stat-value ${getStatClass(boss.baseStats.atk)}">${boss.baseStats.atk}</span></span>
+                <span>Def: <span class="stat-value ${getStatClass(boss.baseStats.def)}">${boss.baseStats.def}</span></span>
+                <span>SpA: <span class="stat-value ${getStatClass(boss.baseStats.spa)}">${boss.baseStats.spa}</span></span>
+                <span>SpD: <span class="stat-value ${getStatClass(boss.baseStats.spd)}">${boss.baseStats.spd}</span></span>
+                <span>Spe: <span class="stat-value ${getStatClass(boss.baseStats.spe)}">${boss.baseStats.spe}</span></span>
+            </div>
+            <p class="boss-info">
+                Detected as a <strong>${bossAttackerType} Attacker</strong> and a <strong>${bossDefenderType}</strong>.
+            </p>
+        </div>
+    `;
+
     let tableHTML = `
-        <h2>Top Counters for ${bossName} (Tera ${teraType})</h2>
-        <p class="boss-info">Detected Raid Boss as a <strong>${bossAttackerType.charAt(0).toUpperCase() + bossAttackerType.slice(1)}</strong> attacker.</p>
+        ${bossInfoHTML}
+        <h2>Top Recommended Counters</h2>
         <div class="pokedex-table-container">
             <table class="pokedex-table">
                 <thead id="raid-table-head">
@@ -308,7 +355,6 @@ function renderRaidCounters(counters, bossAttackerType) {
     tableHTML += '</tbody></table></div>';
     resultsOutput.innerHTML = tableHTML;
 
-    // Attach listener to the new table head
     const tableHead = document.getElementById('raid-table-head');
     if(tableHead) {
         tableHead.addEventListener('click', (event) => {
@@ -320,10 +366,9 @@ function renderRaidCounters(counters, bossAttackerType) {
                 currentSort.ascending = !currentSort.ascending;
             } else {
                 currentSort.column = column;
-                // Default score to descending, others to ascending
                 currentSort.ascending = column !== 'score';
             }
-            sortAndRenderCounters(bossAttackerType);
+            sortAndRenderCounters(raidBoss, bossAttackerType, bossDefenderType);
         });
     }
 }
