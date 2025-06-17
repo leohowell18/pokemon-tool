@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Team Analyzer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 1rem 2rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 { text-align: center; }
+        h1 { margin-top: 0; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 40px; }
+
+        .view-toggle {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .view-toggle button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            margin: 0 10px;
+            border: 2px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .view-toggle button.active {
+            background-color: #d9534f;
+            color: white;
+            border-color: #d9534f;
+        }
+
+        #team-input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .team-slot input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        #controls { text-align: center; margin: 30px 0; }
+        #analyze-btn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background-color: #d9534f;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #analyze-btn:hover { background-color: #c9302c; }
+        
+        #team-summary { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px; }
+        .summary-column { flex: 1; min-width: 280px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
+        .summary-column h3 { margin-top: 0; }
+        
+        #individual-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; }
+        .pokemon-card { background: #f9f9f9; padding: 20px; border-radius: 8px; }
+        .pokemon-card h3 { margin-top: 0; display: inline-block; margin-right: 10px; }
+        .pokemon-card h4 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;}
+        
+        .type-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; color: white; font-weight: 500; margin-right: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
+        .type-badge-small { display: inline-block; padding: 2px 6px; font-size: 0.8em; border-radius: 4px; color: white; font-weight: 500; margin: 2px; }
+        
+        .matchup-list { list-style-type: none; padding: 0; }
+        .matchup-list li { padding: 5px; margin-bottom: 5px; border-radius: 4px; color: white; }
+        
+        .offensive-matchup-group { margin-bottom: 15px; }
+        .offensive-matchup-group p { margin: 8px 0; font-size: 0.9em; }
+        .offensive-matchup-group strong { display: inline-block; min-width: 140px; }
+        
+        .abilities-list { margin-top: 5px; font-style: italic; color: #555; font-size: 0.9em; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px 20px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        }
+        .stat-excellent { background-color: #28a745; }
+        .stat-great { background-color: #8BC34A; }
+        .stat-good { background-color: #007bff; }
+        .stat-average { background-color: #6c757d; }
+        .stat-low { background-color: #d9534f; }
+
+        .weak-4x { background-color: #B71C1C; }
+        .weak-2x { background-color: #d9534f; }
+        .resist-25x { background-color: #4CAF50; }
+        .resist-50x { background-color: #8BC34A; }
+        .immune-0x { background-color: #5bc0de; }
+
+        .super-effective { background-color: #8BC34A; }
+        .not-very-effective { background-color: #f0ad4e; }
+        .immune { background-color: #777; }
+
+        /* Pokedex Table Styling */
+        #pokedex-view { display: none; }
+        .pokedex-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .pokedex-table th, .pokedex-table td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+        .pokedex-table th { background-color: #f2f2f2; cursor: pointer; user-select: none; }
+        .pokedex-table th:hover { background-color: #e2e2e2; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="view-toggle">
+        <button id="show-analyzer-btn" class="active">Team Analyzer</button>
+        <button id="show-pokedex-btn">Full Pokédex</button>
+    </div>
+
+    <div id="analyzer-view">
+        <h1>Pokémon Team Analyzer</h1>
+        <div id="team-input-grid"></div>
+        <datalist id="pokemon-list"></datalist>
+        <div id="controls">
+            <button id="analyze-btn">Analyze Team</button>
+        </div>
+        <div id="results-output"></div>
+    </div>
+
+    <div id="pokedex-view">
+        <h1>Full Pokédex</h1>
+        <div class="pokedex-table-container">
+            <table class="pokedex-table">
+                <thead id="pokedex-table-head"></thead>
+                <tbody id="pokedex-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- DATA AND CONFIGURATION ---
+
+const POKEMON_DATA = [{"name":"Abomasnow","types":["Grass","Ice"],"baseStats":{"hp":90,"atk":92,"def":75,"spa":92,"spd":85,"spe":60},"abilities":{"0":"Snow Warning","H":"Soundproof"}},{"name":"Abra","types":["Psychic"],"baseStats":{"hp":25,"atk":20,"def":15,"spa":105,"spd":55,"spe":90},"abilities":{"0":"Synchronize","1":"Inner Focus","H":"Magic Guard"}},{"name":"Absol","types":["Dark"],"baseStats":{"hp":65,"atk":130,"def":60,"spa":75,"spd":60,"spe":75},"abilities":{"0":"Pressure","1":"Super Luck","H":"Justified"}},{"name":"Accelgor","types":["Bug"],"baseStats":{"hp":80,"atk":70,"def":40,"spa":100,"spd":60,"spe":145},"abilities":{"0":"Hydration","1":"Sticky Hold","H":"Unburden"}},{"name":"Aegislash-shield","types":["Steel","Ghost"],"baseStats":{"hp":60,"atk":50,"def":140,"spa":50,"spd":140,"spe":60},"abilities":{"0":"Stance Change"}},{"name":"Aerodactyl","types":["Rock","Flying"],"baseStats":{"hp":80,"atk":105,"def":65,"spa":60,"spd":75,"spe":130},"abilities":{"0":"Rock Head","1":"Pressure","H":"Unnerve"}},{"name":"Aggron","types":["Steel","Rock"],"baseStats":{"hp":70,"atk":110,"def":180,"spa":60,"spd":60,"spe":50},"abilities":{"0":"Sturdy","1":"Rock Head","H":"Heavy Metal"}},{"name":"Aipom","types":["Normal"],"baseStats":{"hp":55,"atk":70,"def":55,"spa":40,"spd":55,"spe":85},"abilities":{"0":"Run Away","1":"Pickup","H":"Skill Link"}},{"name":"Alakazam","types":["Psychic"],"baseStats":{"hp":55,"atk":50,"def":45,"spa":135,"spd":95,"spe":120},"abilities":{"0":"Synchronize","1":"Inner Focus","H":"Magic Guard"}},{"name":"Alcremie","types":["Fairy"],"baseStats":{"hp":65,"atk":60,"def":75,"spa":110,"spd":121,"spe":64},"abilities":{"0":"Sweet Veil","H":"Aroma Veil"}},{"name":"Alomomola","types":["Water"],"baseStats":{"hp":165,"atk":75,"def":80,"spa":40,"spd":45,"spe":65},"abilities":{"0":"Healer","1":"Hydration","H":"Regenerator"}},{"name":"Altaria","types":["Dragon","Flying"],"baseStats":{"hp":75,"atk":70,"def":90,"spa":70,"spd":105,"spe":80},"abilities":{"0":"Natural Cure","H":"Cloud Nine"}}];
+
+const TYPE_CHART = { "Normal": {"Rock": 0.5, "Ghost": 0, "Steel": 0.5}, "Fire": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 2, "Bug": 2, "Rock": 0.5, "Dragon": 0.5, "Steel": 2}, "Water": {"Fire": 2, "Water": 0.5, "Grass": 0.5, "Ground": 2, "Rock": 2, "Dragon": 0.5}, "Electric": {"Water": 2, "Electric": 0.5, "Grass": 0.5, "Ground": 0, "Flying": 2, "Dragon": 0.5}, "Grass": {"Fire": 0.5, "Water": 2, "Grass": 0.5, "Poison": 0.5, "Ground": 2, "Flying": 0.5, "Bug": 0.5, "Rock": 2, "Dragon": 0.5, "Steel": 0.5}, "Ice": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 0.5, "Ground": 2, "Flying": 2, "Dragon": 2, "Steel": 0.5}, "Fighting": {"Normal": 2, "Ice": 2, "Poison": 0.5, "Flying": 0.5, "Psychic": 0.5, "Bug": 0.5, "Rock": 2, "Ghost": 0, "Dark": 2, "Steel": 2, "Fairy": 0.5}, "Poison": {"Grass": 2, "Poison": 0.5, "Ground": 0.5, "Rock": 0.5, "Ghost": 0.5, "Steel": 0, "Fairy": 2}, "Ground": {"Fire": 2, "Electric": 2, "Grass": 0.5, "Poison": 2, "Flying": 0, "Bug": 0.5, "Rock": 2, "Steel": 2}, "Flying": {"Electric": 0.5, "Grass": 2, "Fighting": 2, "Bug": 2, "Rock": 0.5, "Steel": 0.5}, "Psychic": {"Fighting": 2, "Poison": 2, "Psychic": 0.5, "Dark": 0, "Steel": 0.5}, "Bug": {"Fire": 0.5, "Grass": 2, "Fighting": 0.5, "Poison": 0.5, "Flying": 0.5, "Psychic": 2, "Ghost": 0.5, "Dark": 2, "Steel": 0.5, "Fairy": 0.5}, "Rock": {"Fire": 2, "Ice": 2, "Fighting": 0.5, "Ground": 0.5, "Flying": 2, "Bug": 2, "Steel": 0.5}, "Ghost": {"Normal": 0, "Psychic": 2, "Ghost": 2, "Dark": 0.5}, "Dragon": {"Dragon": 2, "Steel": 0.5, "Fairy": 0}, "Dark": {"Fighting": 0.5, "Psychic": 2, "Ghost": 2, "Dark": 0.5, "Fairy": 0.5}, "Steel": {"Fire": 0.5, "Water": 0.5, "Electric": 0.5, "Ice": 2, "Rock": 2, "Steel": 0.5, "Fairy": 2}, "Fairy": {"Fire": 0.5, "Fighting": 2, "Poison": 0.5, "Dragon": 2, "Dark": 2, "Steel": 0.5} };
+const ALL_TYPES = Object.keys(TYPE_CHART);
+const TYPE_COLORS = { "Normal": "#A8A77A", "Fire": "#EE8130", "Water": "#6390F0", "Electric": "#F7D02C", "Grass": "#7AC74C", "Ice": "#96D9D6", "Fighting": "#C22E28", "Poison": "#A33EA1", "Ground": "#E2BF65", "Flying": "#A98FF3", "Psychic": "#F95587", "Bug": "#A6B91A", "Rock": "#B6A136", "Ghost": "#735797", "Dragon": "#6F35FC", "Dark": "#705746", "Steel": "#B7B7CE", "Fairy": "#D685AD" };
+let pokemonData = [];
+let currentSort = { column: 'name', ascending: true };
+
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    pokemonData = POKEMON_DATA.filter(p => p && p.name && p.types);
+    setupTeamInputs();
+    populateDatalist(pokemonData);
+    setupViewToggles();
+    setupPokedexTable();
+    document.getElementById('analyze-btn').addEventListener('click', analyzeTeam);
+});
+
+function setupViewToggles() {
+    const analyzerView = document.getElementById('analyzer-view');
+    const pokedexView = document.getElementById('pokedex-view');
+    const analyzerBtn = document.getElementById('show-analyzer-btn');
+    const pokedexBtn = document.getElementById('show-pokedex-btn');
+
+    analyzerBtn.addEventListener('click', () => {
+        analyzerView.style.display = 'block';
+        pokedexView.style.display = 'none';
+        analyzerBtn.classList.add('active');
+        pokedexBtn.classList.remove('active');
+    });
+
+    pokedexBtn.addEventListener('click', () => {
+        analyzerView.style.display = 'none';
+        pokedexView.style.display = 'block';
+        pokedexBtn.classList.add('active');
+        analyzerBtn.classList.remove('active');
+    });
+}
+
+function setupTeamInputs() {
+    const grid = document.getElementById('team-input-grid');
+    for (let i = 1; i <= 6; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'team-slot';
+        slot.innerHTML = `<input type="text" id="pokemon-${i}" list="pokemon-list" placeholder="Pokémon ${i} (start typing)">`;
+        grid.appendChild(slot);
+    }
+}
+
+function populateDatalist(list) {
+    const datalist = document.getElementById('pokemon-list');
+    const options = list.map(pokemon => `<option value="${pokemon.name}"></option>`);
+    datalist.innerHTML = options.join('');
+}
+
+// --- POKEDEX TABLE LOGIC ---
+function setupPokedexTable() {
+    renderPokedexTable();
+    const headers = document.querySelectorAll('#pokedex-table-head th');
+    headers.forEach(header => {
+        header.addEventListener('click', () => {
+            const column = header.dataset.sort;
+            if (currentSort.column === column) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.column = column;
+                currentSort.ascending = true;
+            }
+            sortAndRenderPokedexTable();
+        });
+    });
+}
+
+function sortAndRenderPokedexTable() {
+    const { column, ascending } = currentSort;
+    pokemonData.sort((a, b) => {
+        let valA, valB;
+
+        if (column.startsWith('stat-')) {
+            const stat = column.split('-')[1];
+            valA = a.baseStats[stat];
+            valB = b.baseStats[stat];
+        } else {
+            valA = a[column];
+            valB = b[column];
+        }
+
+        if (typeof valA === 'string') {
+            return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+            return ascending ? valA - valB : valB - valA;
+        }
+    });
+    renderPokedexTable();
+}
+
+function renderPokedexTable() {
+    const head = document.getElementById('pokedex-table-head');
+    const body = document.getElementById('pokedex-table-body');
+
+    head.innerHTML = `
+        <tr>
+            <th data-sort="name">Name</th>
+            <th data-sort="types">Types</th>
+            <th>Abilities</th>
+            <th data-sort="stat-hp">HP</th>
+            <th data-sort="stat-atk">Atk</th>
+            <th data-sort="stat-def">Def</th>
+            <th data-sort="stat-spa">SpA</th>
+            <th data-sort="stat-spd">SpD</th>
+            <th data-sort="stat-spe">Spe</th>
+        </tr>
+    `;
+
+    body.innerHTML = pokemonData.map(pokemon => `
+        <tr>
+            <td>${pokemon.name}</td>
+            <td>${pokemon.types.map(t => `<span class="type-badge-small" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}</td>
+            <td>${Object.values(pokemon.abilities).join(' / ')}</td>
+            <td><span class="stat-value ${getStatClass(pokemon.baseStats.hp)}">${pokemon.baseStats.hp}</span></td>
+            <td><span class="stat-value ${getStatClass(pokemon.baseStats.atk)}">${pokemon.baseStats.atk}</span></td>
+            <td><span class="stat-value ${getStatClass(pokemon.baseStats.def)}">${pokemon.baseStats.def}</span></td>
+            <td><span class="stat-value ${getStatClass(pokemon.baseStats.spa)}">${pokemon.baseStats.spa}</span></td>
+            <td><span class="stat-value ${getStatClass(pokemon.baseStats.spd)}">${pokemon.baseStats.spd}</span></td>
+            <td><span class="stat-value ${getStatClass(pokemon.baseStats.spe)}">${pokemon.baseStats.spe}</span></td>
+        </tr>
+    `).join('');
+}
+
+
+// --- TEAM ANALYSIS LOGIC ---
+function getPokemonByName(name) {
+    if (!name) return null;
+    return POKEMON_DATA.find(p => p.name.toLowerCase() === name.toLowerCase());
+}
+
+function getStatClass(statValue) {
+    if (statValue >= 120) return 'stat-excellent';
+    if (statValue >= 100) return 'stat-great';
+    if (statValue >= 80) return 'stat-good';
+    if (statValue >= 60) return 'stat-average';
+    return 'stat-low';
+}
+
+function calculateDefensiveProfile(types) {
+    const profile = { weaknesses: [], resistances: [], immunities: [] };
+    if (!types || types.length === 0) return profile;
+
+    ALL_TYPES.forEach(attackingType => {
+        let multiplier = 1;
+        types.forEach(defendingType => {
+            multiplier *= TYPE_CHART[attackingType]?.[defendingType] ?? 1;
+        });
+        
+        if (multiplier >= 2) profile.weaknesses.push({ type: attackingType, multiplier });
+        else if (multiplier > 0 && multiplier < 1) profile.resistances.push({ type: attackingType, multiplier });
+        else if (multiplier === 0) profile.immunities.push({ type: attackingType });
+    });
+    return profile;
+}
+
+function calculateOffensiveProfile(attackingType) {
+    const profile = { super: [], not_very: [], immune: [] };
+    const attackChart = TYPE_CHART[attackingType] || {};
+
+    ALL_TYPES.forEach(defendingType => {
+        const multiplier = attackChart[defendingType] ?? 1;
+        if (multiplier === 2) profile.super.push(defendingType);
+        else if (multiplier === 0.5) profile.not_very.push(defendingType);
+        else if (multiplier === 0) profile.immune.push(defendingType);
+    });
+    return profile;
+}
+
+function analyzeTeam() {
+    const team = [];
+    for (let i = 1; i <= 6; i++) {
+        const input = document.getElementById(`pokemon-${i}`);
+        const pokemon = getPokemonByName(input.value);
+        if (pokemon) {
+            team.push(pokemon);
+        }
+    }
+    
+    const output = document.getElementById('results-output');
+    if (team.length === 0) {
+        output.innerHTML = `<p style="text-align:center;">Please enter at least one valid Pokémon to analyze.</p>`;
+        return;
+    }
+    renderResults(team);
+}
+
+// --- RENDERING RESULTS ---
+function renderResults(team) {
+    const output = document.getElementById('results-output');
+    output.innerHTML = ''; // Clear previous results
+
+    // 1. Team-wide defensive analysis
+    const teamWeaknessCounts = {};
+    const teamResistanceCounts = {};
+    ALL_TYPES.forEach(t => { 
+        teamWeaknessCounts[t] = 0;
+        teamResistanceCounts[t] = 0;
+    });
+
+    team.forEach(pokemon => {
+        const profile = calculateDefensiveProfile(pokemon.types);
+        profile.weaknesses.forEach(w => teamWeaknessCounts[w.type]++);
+        profile.resistances.forEach(r => teamResistanceCounts[r.type]++);
+        profile.immunities.forEach(i => teamResistanceCounts[i.type]++);
+    });
+    
+    let teamSummaryHTML = `
+        <h2>Team-Wide Defensive Analysis</h2>
+        <div id="team-summary">
+            <div class="summary-column">
+                <h3>Common Weaknesses (2+ members)</h3>
+                <ul class="matchup-list">${generateSummaryList(teamWeaknessCounts, 'weak')}</ul>
+            </div>
+            <div class="summary-column">
+                <h3>Common Resistances (3+ members)</h3>
+                <ul class="matchup-list">${generateSummaryList(teamResistanceCounts, 'resist')}</ul>
+            </div>
+        </div>
+    `;
+    output.innerHTML += teamSummaryHTML;
+
+    // 2. Individual analysis
+    let individualResultsHTML = '<h2>Individual Pokémon Analysis</h2><div id="individual-results">';
+    team.forEach(pokemon => {
+        const defensiveProfile = calculateDefensiveProfile(pokemon.types);
+        
+        individualResultsHTML += `
+            <div class="pokemon-card">
+                <h3>${pokemon.name}</h3>
+                <p>${pokemon.types.map(t => `<span class="type-badge" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}</p>
+                
+                <p class="abilities-list"><strong>Abilities:</strong> ${Object.values(pokemon.abilities).join(' / ')}</p>
+
+                <h4>Base Stats</h4>
+                <div class="stats-grid">
+                    <span>HP: <span class="stat-value ${getStatClass(pokemon.baseStats.hp)}">${pokemon.baseStats.hp}</span></span>
+                    <span>Atk: <span class="stat-value ${getStatClass(pokemon.baseStats.atk)}">${pokemon.baseStats.atk}</span></span>
+                    <span>Def: <span class="stat-value ${getStatClass(pokemon.baseStats.def)}">${pokemon.baseStats.def}</span></span>
+                    <span>SpA: <span class="stat-value ${getStatClass(pokemon.baseStats.spa)}">${pokemon.baseStats.spa}</span></span>
+                    <span>SpD: <span class="stat-value ${getStatClass(pokemon.baseStats.spd)}">${pokemon.baseStats.spd}</span></span>
+                    <span>Spe: <span class="stat-value ${getStatClass(pokemon.baseStats.spe)}">${pokemon.baseStats.spe}</span></span>
+                </div>
+                
+                <h4>Defensive Matchups</h4>
+                <ul class="matchup-list">
+                    ${defensiveProfile.weaknesses.sort((a,b) => b.multiplier - a.multiplier).map(w => `<li class="weak-${w.multiplier === 4 ? '4x' : '2x'}">${w.type} (x${w.multiplier})</li>`).join('')}
+                    ${defensiveProfile.resistances.sort((a,b) => a.multiplier - b.multiplier).map(r => `<li class="resist-${r.multiplier === 0.25 ? '25x' : '50x'}">${r.type} (x${r.multiplier})</li>`).join('')}
+                    ${defensiveProfile.immunities.map(i => `<li class="immune-0x">${i.type} (x0)</li>`).join('')}
+                </ul>
+
+                <h4>Offensive Matchups (STAB)</h4>
+                ${pokemon.types.map(type => {
+                    const offensiveProfile = calculateOffensiveProfile(type);
+                    return `
+                    <div class="offensive-matchup-group">
+                        <strong>${type} Attacks Hit...</strong>
+                        <p>Super Effectively (2x): ${offensiveProfile.super.length > 0 ? offensiveProfile.super.map(t => `<span class="type-badge-small super-effective">${t}</span>`).join(' ') : 'None'}</p>
+                        <p>Not Very Effectively (0.5x): ${offensiveProfile.not_very.length > 0 ? offensiveProfile.not_very.map(t => `<span class="type-badge-small not-very-effective">${t}</span>`).join(' ') : 'None'}</p>
+                        <p>Ineffectively (0x): ${offensiveProfile.immune.length > 0 ? offensiveProfile.immune.map(t => `<span class="type-badge-small immune">${t}</span>`).join(' ') : 'None'}</p>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    });
+    individualResultsHTML += '</div>';
+    output.innerHTML += individualResultsHTML;
+}
+
+function generateSummaryList(counts, mode) {
+    const threshold = mode === 'weak' ? 2 : 3;
+    const filtered = Object.entries(counts)
+        .filter(([, count]) => count >= threshold)
+        .sort(([, countA], [, countB]) => countB - countA);
+    
+    if (filtered.length === 0) {
+        return `<li>None</li>`;
+    }
+
+    return filtered.map(([type, count]) => {
+        const className = mode === 'weak' ? 'weak-2x' : 'resist-50x';
+        return `<li class="${className}">${type} (${count} members)</li>`
+    }).join('');
+}
+</script>
+</body>
+</html>
