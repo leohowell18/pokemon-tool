@@ -36,7 +36,7 @@
             border: 1px solid #ccc;
             border-radius: 6px;
         }
-        #analyze-btn-container {
+        #controls {
             text-align: center;
             margin: 30px 0;
         }
@@ -51,61 +51,34 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        #analyze-btn:hover { background-color: #c9302c; }
-        #analyze-btn.loading { background-color: #777; cursor: not-allowed; }
-
-        #results-output, #loader { text-align: center; }
+        #analyze-btn:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+        #analyze-btn:hover:not(:disabled) { background-color: #c9302c; }
         
-        #team-summary {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            gap: 20px;
+        #status-message {
+            text-align: center;
+            margin: 20px;
+            font-weight: bold;
+            color: #555;
         }
-        .summary-column {
-            flex: 1;
-            min-width: 280px;
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-        }
+
+        #results-output { /* Style remains the same */ }
+        #team-summary { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px; }
+        .summary-column { flex: 1; min-width: 280px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
         .summary-column h3 { margin-top: 0; }
-        
-        #individual-results {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-        }
-        .pokemon-card {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-        }
+        #individual-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .pokemon-card { background: #f9f9f9; padding: 20px; border-radius: 8px; }
         .pokemon-card h3 { margin-top: 0; }
-        .type-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 4px;
-            color: white;
-            font-weight: 500;
-            margin-right: 5px;
-        }
-        .matchup-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .matchup-list li {
-            padding: 5px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            color: white;
-        }
-        .weak-4x { background-color: #B71C1C; } /* Dark Red */
-        .weak-2x { background-color: #d9534f; } /* Red */
-        .resist-25x { background-color: #4CAF50; } /* Strong Green */
-        .resist-50x { background-color: #8BC34A; } /* Lighter Green */
-        .immune-0x { background-color: #5bc0de; } /* Blue */
-
+        .type-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; color: white; font-weight: 500; margin-right: 5px; }
+        .matchup-list { list-style-type: none; padding: 0; }
+        .matchup-list li { padding: 5px; margin-bottom: 5px; border-radius: 4px; color: white; }
+        .weak-4x { background-color: #B71C1C; }
+        .weak-2x { background-color: #d9534f; }
+        .resist-25x { background-color: #4CAF50; }
+        .resist-50x { background-color: #8BC34A; }
+        .immune-0x { background-color: #5bc0de; }
     </style>
 </head>
 <body>
@@ -117,8 +90,9 @@
         </div>
     <datalist id="pokemon-list"></datalist>
     
-    <div id="analyze-btn-container">
-        <button id="analyze-btn" disabled>Loading Pokémon Data...</button>
+    <div id="controls">
+        <p id="status-message">Loading Pokémon data, please wait...</p>
+        <button id="analyze-btn" disabled>Analyze Team</button>
     </div>
 
     <div id="results-output"></div>
@@ -127,43 +101,33 @@
 <script>
 // --- DATA AND CONFIGURATION ---
 const POKEMON_DATA_URL = 'https://raw.githubusercontent.com/sindresorhus/pokemon/main/data/en.json';
-const TYPE_CHART = {
-    "Normal": {"Rock": 0.5, "Ghost": 0, "Steel": 0.5},
-    "Fire": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 2, "Bug": 2, "Rock": 0.5, "Dragon": 0.5, "Steel": 2},
-    "Water": {"Fire": 2, "Water": 0.5, "Grass": 0.5, "Ground": 2, "Rock": 2, "Dragon": 0.5},
-    "Electric": {"Water": 2, "Electric": 0.5, "Grass": 0.5, "Ground": 0, "Flying": 2, "Dragon": 0.5},
-    "Grass": {"Fire": 0.5, "Water": 2, "Grass": 0.5, "Poison": 0.5, "Ground": 2, "Flying": 0.5, "Bug": 0.5, "Rock": 2, "Dragon": 0.5, "Steel": 0.5},
-    "Ice": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 0.5, "Ground": 2, "Flying": 2, "Dragon": 2, "Steel": 0.5},
-    "Fighting": {"Normal": 2, "Ice": 2, "Poison": 0.5, "Flying": 0.5, "Psychic": 0.5, "Bug": 0.5, "Rock": 2, "Ghost": 0, "Dark": 2, "Steel": 2, "Fairy": 0.5},
-    "Poison": {"Grass": 2, "Poison": 0.5, "Ground": 0.5, "Rock": 0.5, "Ghost": 0.5, "Steel": 0, "Fairy": 2},
-    "Ground": {"Fire": 2, "Electric": 2, "Grass": 0.5, "Poison": 2, "Flying": 0, "Bug": 0.5, "Rock": 2, "Steel": 2},
-    "Flying": {"Electric": 0.5, "Grass": 2, "Fighting": 2, "Bug": 2, "Rock": 0.5, "Steel": 0.5},
-    "Psychic": {"Fighting": 2, "Poison": 2, "Psychic": 0.5, "Dark": 0, "Steel": 0.5},
-    "Bug": {"Fire": 0.5, "Grass": 2, "Fighting": 0.5, "Poison": 0.5, "Flying": 0.5, "Psychic": 2, "Ghost": 0.5, "Dark": 2, "Steel": 0.5, "Fairy": 0.5},
-    "Rock": {"Fire": 2, "Ice": 2, "Fighting": 0.5, "Ground": 0.5, "Flying": 2, "Bug": 2, "Steel": 0.5},
-    "Ghost": {"Normal": 0, "Psychic": 2, "Ghost": 2, "Dark": 0.5},
-    "Dragon": {"Dragon": 2, "Steel": 0.5, "Fairy": 0},
-    "Dark": {"Fighting": 0.5, "Psychic": 2, "Ghost": 2, "Dark": 0.5, "Fairy": 0.5},
-    "Steel": {"Fire": 0.5, "Water": 0.5, "Electric": 0.5, "Ice": 2, "Rock": 2, "Steel": 0.5, "Fairy": 2},
-    "Fairy": {"Fire": 0.5, "Fighting": 2, "Poison": 0.5, "Dragon": 2, "Dark": 2, "Steel": 0.5}
-};
+const TYPE_CHART = { "Normal": {"Rock": 0.5, "Ghost": 0, "Steel": 0.5}, "Fire": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 2, "Bug": 2, "Rock": 0.5, "Dragon": 0.5, "Steel": 2}, "Water": {"Fire": 2, "Water": 0.5, "Grass": 0.5, "Ground": 2, "Rock": 2, "Dragon": 0.5}, "Electric": {"Water": 2, "Electric": 0.5, "Grass": 0.5, "Ground": 0, "Flying": 2, "Dragon": 0.5}, "Grass": {"Fire": 0.5, "Water": 2, "Grass": 0.5, "Poison": 0.5, "Ground": 2, "Flying": 0.5, "Bug": 0.5, "Rock": 2, "Dragon": 0.5, "Steel": 0.5}, "Ice": {"Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 0.5, "Ground": 2, "Flying": 2, "Dragon": 2, "Steel": 0.5}, "Fighting": {"Normal": 2, "Ice": 2, "Poison": 0.5, "Flying": 0.5, "Psychic": 0.5, "Bug": 0.5, "Rock": 2, "Ghost": 0, "Dark": 2, "Steel": 2, "Fairy": 0.5}, "Poison": {"Grass": 2, "Poison": 0.5, "Ground": 0.5, "Rock": 0.5, "Ghost": 0.5, "Steel": 0, "Fairy": 2}, "Ground": {"Fire": 2, "Electric": 2, "Grass": 0.5, "Poison": 2, "Flying": 0, "Bug": 0.5, "Rock": 2, "Steel": 2}, "Flying": {"Electric": 0.5, "Grass": 2, "Fighting": 2, "Bug": 2, "Rock": 0.5, "Steel": 0.5}, "Psychic": {"Fighting": 2, "Poison": 2, "Psychic": 0.5, "Dark": 0, "Steel": 0.5}, "Bug": {"Fire": 0.5, "Grass": 2, "Fighting": 0.5, "Poison": 0.5, "Flying": 0.5, "Psychic": 2, "Ghost": 0.5, "Dark": 2, "Steel": 0.5, "Fairy": 0.5}, "Rock": {"Fire": 2, "Ice": 2, "Fighting": 0.5, "Ground": 0.5, "Flying": 2, "Bug": 2, "Steel": 0.5}, "Ghost": {"Normal": 0, "Psychic": 2, "Ghost": 2, "Dark": 0.5}, "Dragon": {"Dragon": 2, "Steel": 0.5, "Fairy": 0}, "Dark": {"Fighting": 0.5, "Psychic": 2, "Ghost": 2, "Dark": 0.5, "Fairy": 0.5}, "Steel": {"Fire": 0.5, "Water": 0.5, "Electric": 0.5, "Ice": 2, "Rock": 2, "Steel": 0.5, "Fairy": 2}, "Fairy": {"Fire": 0.5, "Fighting": 2, "Poison": 0.5, "Dragon": 2, "Dark": 2, "Steel": 0.5} };
 const ALL_TYPES = Object.keys(TYPE_CHART);
 const TYPE_COLORS = { "Normal": "#A8A77A", "Fire": "#EE8130", "Water": "#6390F0", "Electric": "#F7D02C", "Grass": "#7AC74C", "Ice": "#96D9D6", "Fighting": "#C22E28", "Poison": "#A33EA1", "Ground": "#E2BF65", "Flying": "#A98FF3", "Psychic": "#F95587", "Bug": "#A6B91A", "Rock": "#B6A136", "Ghost": "#735797", "Dragon": "#6F35FC", "Dark": "#705746", "Steel": "#B7B7CE", "Fairy": "#D685AD" };
-let pokemonList = [];
+let pokemonData = [];
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', async () => {
-    setupTeamInputs();
     const analyzeBtn = document.getElementById('analyze-btn');
+    const statusMsg = document.getElementById('status-message');
+    
+    setupTeamInputs();
+
     try {
         const response = await fetch(POKEMON_DATA_URL);
-        pokemonList = await response.json();
-        populateDatalist(pokemonList);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        // The data is an object with pokemon names as keys, let's convert to an array
+        pokemonData = Object.entries(data).map(([name, types]) => ({ name, types }));
+
+        populateDatalist(pokemonData);
+        
         analyzeBtn.disabled = false;
-        analyzeBtn.textContent = 'Analyze Team';
+        statusMsg.style.display = 'none'; // Hide status message on success
     } catch (error) {
         console.error('Failed to load Pokémon data:', error);
-        analyzeBtn.textContent = 'Error loading data. Please refresh.';
+        statusMsg.textContent = 'Error: Could not load Pokémon data. Please refresh the page to try again.';
+        statusMsg.style.color = '#c9302c';
     }
 
     analyzeBtn.addEventListener('click', analyzeTeam);
@@ -174,23 +138,23 @@ function setupTeamInputs() {
     for (let i = 1; i <= 6; i++) {
         const slot = document.createElement('div');
         slot.className = 'team-slot';
-        slot.innerHTML = `<input type="text" id="pokemon-${i}" list="pokemon-list" placeholder="Pokémon ${i}">`;
+        slot.innerHTML = `<input type="text" id="pokemon-${i}" list="pokemon-list" placeholder="Pokémon ${i} (start typing)">`;
         grid.appendChild(slot);
     }
 }
 
+// *** THIS IS THE CORRECTED FUNCTION ***
 function populateDatalist(list) {
     const datalist = document.getElementById('pokemon-list');
-    list.forEach(pokemon => {
-        datalist.innerHTML += `<option value="${pokemon.name}">`;
-    });
+    const options = list.map(pokemon => `<option value="${pokemon.name}"></option>`);
+    datalist.innerHTML = options.join('');
 }
 
 
 // --- ANALYSIS LOGIC ---
 function getPokemonByName(name) {
     if (!name) return null;
-    return pokemonList.find(p => p.name.toLowerCase() === name.toLowerCase());
+    return pokemonData.find(p => p.name.toLowerCase() === name.toLowerCase());
 }
 
 function calculateDefensiveProfile(types) {
@@ -219,20 +183,20 @@ function analyzeTeam() {
         }
     }
     
+    const output = document.getElementById('results-output');
     if (team.length === 0) {
-        document.getElementById('results-output').innerHTML = `<p>Please enter at least one Pokémon to analyze.</p>`;
+        output.innerHTML = `<p style="text-align:center;">Please enter at least one valid Pokémon to analyze.</p>`;
         return;
     }
 
     renderResults(team);
 }
 
-// --- RENDERING RESULTS ---
+// --- RENDERING RESULTS (No changes needed here) ---
 function renderResults(team) {
     const output = document.getElementById('results-output');
-    output.innerHTML = ''; // Clear previous results
+    output.innerHTML = '';
 
-    // 1. Team-wide analysis
     const teamWeaknessCounts = {};
     const teamResistanceCounts = {};
     ALL_TYPES.forEach(t => { 
@@ -251,18 +215,17 @@ function renderResults(team) {
         <h2>Team-Wide Analysis</h2>
         <div id="team-summary">
             <div class="summary-column">
-                <h3>Common Weaknesses</h3>
+                <h3>Common Weaknesses (2+ members)</h3>
                 <ul class="matchup-list">${generateSummaryList(teamWeaknessCounts, 'weak')}</ul>
             </div>
             <div class="summary-column">
-                <h3>Common Resistances</h3>
+                <h3>Common Resistances (3+ members)</h3>
                 <ul class="matchup-list">${generateSummaryList(teamResistanceCounts, 'resist')}</ul>
             </div>
         </div>
     `;
     output.innerHTML += teamSummaryHTML;
 
-    // 2. Individual analysis
     let individualResultsHTML = '<h2>Individual Pokémon</h2><div id="individual-results">';
     team.forEach(pokemon => {
         const profile = calculateDefensiveProfile(pokemon.types);
@@ -270,11 +233,10 @@ function renderResults(team) {
             <div class="pokemon-card">
                 <h3>${pokemon.name}</h3>
                 <p>${pokemon.types.map(t => `<span class="type-badge" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}</p>
-                
                 <h4>Defensive Matchups:</h4>
                 <ul class="matchup-list">
-                    ${profile.weaknesses.map(w => `<li class="weak-${w.multiplier === 4 ? '4x' : '2x'}">${w.type} (x${w.multiplier})</li>`).join('')}
-                    ${profile.resistances.map(r => `<li class="resist-${r.multiplier === 0.25 ? '25x' : '50x'}">${r.type} (x${r.multiplier})</li>`).join('')}
+                    ${profile.weaknesses.sort((a,b) => b.multiplier - a.multiplier).map(w => `<li class="weak-${w.multiplier === 4 ? '4x' : '2x'}">${w.type} (x${w.multiplier})</li>`).join('')}
+                    ${profile.resistances.sort((a,b) => a.multiplier - b.multiplier).map(r => `<li class="resist-${r.multiplier === 0.25 ? '25x' : '50x'}">${r.type} (x${r.multiplier})</li>`).join('')}
                     ${profile.immunities.map(i => `<li class="immune-0x">${i.type} (x0)</li>`).join('')}
                 </ul>
             </div>
@@ -285,12 +247,13 @@ function renderResults(team) {
 }
 
 function generateSummaryList(counts, mode) {
+    const threshold = mode === 'weak' ? 2 : 3;
     const filtered = Object.entries(counts)
-        .filter(([type, count]) => count > (mode === 'weak' ? 1 : 2) ) // Show weaknesses shared by 2+ members, resistances by 3+
+        .filter(([, count]) => count >= threshold)
         .sort(([, countA], [, countB]) => countB - countA);
     
     if (filtered.length === 0) {
-        return `<li>No significant overlapping ${mode === 'weak' ? 'weaknesses' : 'resistances'}.</li>`;
+        return `<li>None</li>`;
     }
 
     return filtered.map(([type, count]) => {
@@ -298,7 +261,6 @@ function generateSummaryList(counts, mode) {
         return `<li class="${className}">${type} (${count} members)</li>`
     }).join('');
 }
-
 </script>
 </body>
 </html>
