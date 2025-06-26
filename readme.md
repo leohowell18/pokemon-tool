@@ -17,5 +17,9 @@ This tool helps you quickly assess how effective different types are in battle, 
 
 Just open `index.html` in a browser or host it anywhere — no build tools or dependencies required.
 
-## 📁 File Structure
+## 📜 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
+
+
 
