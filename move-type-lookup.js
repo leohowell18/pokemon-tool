@@ -1,4 +1,4 @@
-{
+const MOVE_TYPE_LOOKUP = {
   "earthquake": "ground",
   "dragon-claw": "dragon",
   "play-rough": "fairy",
@@ -9,4 +9,4 @@
   "iron-head": "steel",
   "brave-bird": "flying",
   "recover": "normal"
-}
+};
