@@ -198,7 +198,8 @@ function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderTy
       <h2>Raid Boss: ${raidBoss.name}</h2>
       <div class="stats-grid">
         ${Object.entries(raidBoss.baseStats).map(([stat, val]) => {
-          return `<span>${stat.toUpperCase()}: <span class="stat-value">${val}</span></span>`;
+          return `<span>${stat.toUpperCase()}: <span class="stat-value ${getStatColorClass(val)}">${val}</span>
+</span>`;
         }).join('')}
       </div>
       <p class="boss-info">
