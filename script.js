@@ -44,7 +44,7 @@ function getMoveBadge(move) {
   const capType = type.charAt(0).toUpperCase() + type.slice(1);
   const emoji = TYPE_EMOJIS[capType] || '';
   const color = TYPE_COLORS[capType] || '#ccc';
-  return `<span class="type-badge-small" style="background-color:${color}" title="${capType}">${emoji} ${move}</span>`;
+  return `<span class="type-badge-small" style="background-color:${color}" title="${capType}">${emoji} ${move}</span>`};
 
 document.addEventListener('DOMContentLoaded', () => {
   pokemonData = POKEMON_DATA.filter(p => p && p.name && p.types);
