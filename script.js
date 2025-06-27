@@ -125,7 +125,10 @@ function findTeraRaidCounters() {
   });
 
   currentSort = { column: 'score', ascending: false };
-  renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
+  renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType)
+  console.log("🔎 Boss name:", boss.name);
+  console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[boss.name]);
+;
 }
 
 function renderRaidCounters(boss, counters, bossAttackerType, bossDefenderType) {
