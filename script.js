@@ -131,7 +131,7 @@ function findTeraRaidCounters() {
 ;
 }
 
-function renderRaidCounters(boss, counters, bossAttackerType, bossDefenderType) {
+function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderType) {
   const resultsOutput = document.getElementById('results-output');
   const bossRaidInfo = RAID_BOSS_DATA[boss.name];
   const moveSummary = bossRaidInfo ? `
