@@ -133,6 +133,11 @@ function findTeraRaidCounters() {
     }
     const moveList = MOVESETS_DATA[counter.name] || [];
 
+    if (!MOVESETS_DATA[counter.name]) {
+  console.warn(`No moveset data for ${counter.name}`);
+}
+
+
 const hasEffectiveSTAB = counter.types.some(type =>
   moveList.some(move => {
     const moveType = MOVE_TYPE_LOOKUP[move];
