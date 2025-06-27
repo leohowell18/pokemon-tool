@@ -124,7 +124,7 @@ function findTeraRaidCounters() {
     }
   });
 
-  currentSort = { column: 'score', ascending: false };
+   currentSort = { column: 'score', ascending: false };
   renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
   console.log("🔎 Boss name:", raidBoss.name);
   console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
@@ -158,5 +158,53 @@ function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderTy
       ${moveSummary}
     </div>`;
 
-  resultsOutput.innerHTML = bossInfoHTML + '<h2>Top Recommended Counters</h2>';
+  let tableHTML = `
+    <h2>Top Recommended Counters</h2>
+    <div class="pokedex-table-container">
+      <table class="pokedex-table">
+        <thead id="raid-table-head">
+          <tr>
+            <th data-sort="name">Name</th>
+            <th data-sort="score">Score</th>
+            <th>Abilities</th>
+            <th>Offensive Advantage</th>
+            <th>Defensive Advantage</th>
+            <th data-sort="stat-hp">HP</th>
+            <th data-sort="stat-atk">Atk</th>
+            <th data-sort="stat-def">Def</th>
+            <th data-sort="stat-spa">SpA</th>
+            <th data-sort="stat-spd">SpD</th>
+            <th data-sort="stat-spe">Spe</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  if (counters.length === 0) {
+    tableHTML += '<tr><td colspan="11">No ideal counters found. Consider Pokémon with neutral matchups.</td></tr>';
+  } else {
+    counters.slice(0, 15).forEach(counter => {
+      tableHTML += `
+        <tr>
+          <td>
+            <strong>${counter.pokemon.name}</strong><br>
+            ${counter.pokemon.types.map(t => `<span class="type-badge-small" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}
+          </td>
+          <td>${counter.score.toFixed(1)}</td>
+          <td><span class="reason">${Object.values(counter.pokemon.abilities).join(' / ')}</span></td>
+          <td><span class="reason">${counter.offensiveReason || 'None'}</span></td>
+          <td><span class="reason">${counter.defensiveReason || 'None'}</span></td>
+          <td><span class="stat-value">${counter.pokemon.baseStats.hp}</span></td>
+          <td><span class="stat-value">${counter.pokemon.baseStats.atk}</span></td>
+          <td><span class="stat-value">${counter.pokemon.baseStats.def}</span></td>
+          <td><span class="stat-value">${counter.pokemon.baseStats.spa}</span></td>
+          <td><span class="stat-value">${counter.pokemon.baseStats.spd}</span></td>
+          <td><span class="stat-value">${counter.pokemon.baseStats.spe}</span></td>
+        </tr>
+      `;
+    });
+  }
+
+  tableHTML += '</tbody></table></div>';
+  resultsOutput.innerHTML = bossInfoHTML + tableHTML;
 }
