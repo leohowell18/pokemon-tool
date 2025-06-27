@@ -164,16 +164,10 @@ function findTeraRaidCounters() {
     }
   });
 
- currentSort = { column: 'score', ascending: false };
-renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
-console.log("🔎 Boss name:", raidBoss.name);
-console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
-}
-
-currentSort = { column: 'score', ascending: false };
-renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
-console.log("🔎 Boss name:", raidBoss.name);
-console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
+  currentSort = { column: 'score', ascending: false };
+  renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
+  console.log("🔎 Boss name:", raidBoss.name);
+  console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
 }
 
 function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderType) {
