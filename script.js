@@ -46,6 +46,13 @@ function getMoveBadge(move) {
   const color = TYPE_COLORS[capType] || '#ccc';
   return `<span class="type-badge-small" style="background-color:${color}" title="${capType}">${emoji} ${move}</span>`};
 
+function getStatColorClass(value) {
+  if (value >= 120) return 'stat-high';
+  if (value >= 90) return 'stat-mid';
+  if (value <= 50) return 'stat-low';
+  return '';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   pokemonData = POKEMON_DATA.filter(p => p && p.name && p.types);
   populateDatalist(pokemonData);
@@ -163,6 +170,12 @@ console.log("🔎 Boss name:", raidBoss.name);
 console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
 }
 
+currentSort = { column: 'score', ascending: false };
+renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
+console.log("🔎 Boss name:", raidBoss.name);
+console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
+}
+
 function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderType) {
   const resultsOutput = document.getElementById('results-output');
   const bossRaidInfo = RAID_BOSS_DATA[raidBoss.name];
@@ -238,12 +251,12 @@ function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderTy
           <td><span class="reason">${counter.offensiveReason || 'None'}</span></td>
           <td><span class="reason">${counter.defensiveReason || 'None'}</span></td>
           <td><span class="matchup-warning">${riskyMoves ? `⚠️ Weak to ${riskyMoves.join(', ')}` : '—'}</span></td>
-          <td><span class="stat-value">${counter.pokemon.baseStats.hp}</span></td>
-          <td><span class="stat-value">${counter.pokemon.baseStats.atk}</span></td>
-          <td><span class="stat-value">${counter.pokemon.baseStats.def}</span></td>
-          <td><span class="stat-value">${counter.pokemon.baseStats.spa}</span></td>
-          <td><span class="stat-value">${counter.pokemon.baseStats.spd}</span></td>
-          <td><span class="stat-value">${counter.pokemon.baseStats.spe}</span></td>
+          <td><span class="stat-value ${getStatColorClass(counter.pokemon.baseStats.hp)}">${counter.pokemon.baseStats.hp}</span></td>
+          <td><span class="stat-value ${getStatColorClass(counter.pokemon.baseStats.atk)}">${counter.pokemon.baseStats.atk}</span></td>
+          <td><span class="stat-value ${getStatColorClass(counter.pokemon.baseStats.def)}">${counter.pokemon.baseStats.def}</span></td>
+          <td><span class="stat-value ${getStatColorClass(counter.pokemon.baseStats.spa)}">${counter.pokemon.baseStats.spa}</span></td>
+          <td><span class="stat-value ${getStatColorClass(counter.pokemon.baseStats.spd)}">${counter.pokemon.baseStats.spd}</span></td>
+          <td><span class="stat-value ${getStatColorClass(counter.pokemon.baseStats.spe)}">${counter.pokemon.baseStats.spe}</span></td>
         </tr>
       `;
     });
