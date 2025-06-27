@@ -1,4 +1,4 @@
-{
+const MOVESETS_DATA = {
   "Garchomp": [
     "aerial-ace",
     "bite",
@@ -588,4 +588,4 @@
     "thunderbolt",
     "trick"
   ]
-}
+};
