@@ -133,13 +133,6 @@ function findTeraRaidCounters() {
     }
     
 
-
-if (hasEffectiveSTAB) {
-  score += 2;
-  offensiveReasons.push("Has STAB move that's super effective vs Tera type");
-}
-
-
     if (score > 2) {
       potentialCounters.push({
         pokemon: counter,
