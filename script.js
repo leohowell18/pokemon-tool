@@ -142,7 +142,7 @@ const hasEffectiveSTAB = counter.types.some(type =>
 );
 
 if (hasEffectiveSTAB) {
-  score += 2;
+  score += 10;
   offensiveReasons.push("Has STAB move that's super effective vs Tera type");
 }
 
