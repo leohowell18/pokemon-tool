@@ -133,16 +133,19 @@ function findTeraRaidCounters() {
 function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderType) {
   const resultsOutput = document.getElementById('results-output');
   const bossRaidInfo = RAID_BOSS_DATA[raidBoss.name];
-  const moveSummary = bossRaidInfo ? `
-    <details>
-      <summary>Known Raid Moves</summary>
-      <ul>
-        <li><strong>Base:</strong> ${bossRaidInfo.base_moves.join(', ')}</li>
-        <li><strong>Additional:</strong> ${bossRaidInfo.additional_moves.join(', ')}</li>
-        <li><strong>Actions:</strong> ${bossRaidInfo.actions.slice(0, 5).join('; ')}...</li>
-      </ul>
-    </details>
-  ` : '';
+const moveSummary = bossRaidInfo && (
+  bossRaidInfo.base_moves.length || bossRaidInfo.additional_moves.length || bossRaidInfo.actions.length
+) ? `
+  <details class="moveset-details">
+    <summary><strong>📜 Known Raid Moves</strong></summary>
+    <div class="move-section">
+      ${bossRaidInfo.base_moves.length ? `<p><strong>Base:</strong> ${bossRaidInfo.base_moves.join(', ')}</p>` : ''}
+      ${bossRaidInfo.additional_moves.length ? `<p><strong>Additional:</strong> ${bossRaidInfo.additional_moves.join(', ')}</p>` : ''}
+      ${bossRaidInfo.actions.length ? `<p><strong>Actions:</strong><br>${bossRaidInfo.actions.map(a => `• ${a}`).join('<br>')}</p>` : ''}
+    </div>
+  </details>
+` : '';
+
 
   const bossInfoHTML = `
     <div class="boss-info-container">
