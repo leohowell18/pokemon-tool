@@ -131,23 +131,57 @@ function findTeraRaidCounters() {
       score += 1.5;
       offensiveReasons.push('Targets weaker Sp. Defense');
     }
-    const moveList = MOVESETS_DATA[counter.name] || [];
+    
+// MINI TEST HARNESS: STAB + SE Move Bonus
 
-    if (!MOVESETS_DATA[counter.name]) {
-  console.warn(`No moveset data for ${counter.name}`);
-}
+const MOVESETS_DATA = {
+  "Garchomp": ["earthquake", "dragon-claw"],
+  "Azumarill": ["play-rough", "belly-drum"],
+  "Corviknight": ["brave-bird", "iron-head"]
+};
 
+const MOVE_TYPE_LOOKUP = {
+  "earthquake": "ground",
+  "dragon-claw": "dragon",
+  "play-rough": "fairy",
+  "belly-drum": "normal",
+  "brave-bird": "flying",
+  "iron-head": "steel"
+};
 
-const hasEffectiveSTAB = counter.types.some(type =>
-  moveList.some(move => {
-    const moveType = MOVE_TYPE_LOOKUP[move];
-    const effectiveness = TYPE_CHART[moveType]?.[teraType] ?? 1;
-    return moveType === type && effectiveness > 1;
-  })
-);
+const TYPE_CHART = {
+  "ground": { "electric": 2, "fire": 2, "steel": 2 },
+  "fairy": { "dark": 2, "dragon": 2, "fighting": 2 },
+  "steel": { "fairy": 2, "ice": 2, "rock": 2 },
+  "flying": { "grass": 2, "fighting": 2, "bug": 2 },
+  "dragon": { "dragon": 2 },
+  "normal": {}
+};
+
+const teraType = "electric";
+
+const testPokemon = [
+  { name: "Garchomp", types: ["Ground", "Dragon"] },
+  { name: "Azumarill", types: ["Fairy", "Water"] },
+  { name: "Corviknight", types: ["Flying", "Steel"] }
+];
+
+testPokemon.forEach(pokemon => {
+  const moveList = MOVESETS_DATA[pokemon.name] || [];
+  const hasEffectiveSTAB = pokemon.types.some(type =>
+    moveList.some(move => {
+      const moveType = MOVE_TYPE_LOOKUP[move];
+      const effectiveness = TYPE_CHART[moveType]?.[teraType] ?? 1;
+      return moveType?.toLowerCase() === type.toLowerCase() && effectiveness > 1;
+    })
+  );
+
+  console.log(`${pokemon.name}:`, hasEffectiveSTAB ? "✅ gets bonus" : "❌ no bonus");
+});
+
 
 if (hasEffectiveSTAB) {
-  score += 10;
+  score += 2;
   offensiveReasons.push("Has STAB move that's super effective vs Tera type");
 }
 
