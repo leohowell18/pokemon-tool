@@ -27,12 +27,24 @@ const ALL_TYPES = Object.keys(TYPE_CHART);
 const TYPE_COLORS = { "Normal": "#A8A77A", "Fire": "#EE8130", "Water": "#6390F0", "Electric": "#F7D02C", "Grass": "#7AC74C", "Ice": "#96D9D6", "Fighting": "#C22E28", "Poison": "#A33EA1", "Ground": "#E2BF65", "Flying": "#A98FF3", "Psychic": "#F95587", "Bug": "#A6B91A", "Rock": "#B6A136", "Ghost": "#735797", "Dragon": "#6F35FC", "Dark": "#705746", "Steel": "#B7B7CE", "Fairy": "#D685AD" };
 const SCARLET_VIOLET_DEX = new Set(["Sprigatito", "Floragato", "Meowscarada", "Fuecoco", "Crocalor", "Skeledirge", "Quaxly", "Quaxwell", "Quaquaval", "Lechonk", "Oinkologne", "Tarountula", "Spidops", "Nymble", "Lokix", "Pawmi", "Pawmo", "Pawmot", "Tandemaus", "Maushold", "Fidough", "Dachsbun", "Smoliv", "Dolliv", "Arboliva", "Squawkabilly", "Nacli", "Naclstack", "Garganacl", "Charcadet", "Armarouge", "Ceruledge", "Tadbulb", "Bellibolt", "Wattrel", "Kilowattrel", "Maschiff", "Mabosstiff", "Shroodle", "Grafaiai", "Bramblin", "Brambleghast", "Toedscool", "Toedscruel", "Klawf", "Capsakid", "Scovillain", "Rellor", "Rabsca", "Flittle", "Espathra", "Tinkatink", "Tinkatuff", "Tinkaton", "Wiglett", "Wugtrio", "Bombirdier", "Finizen", "Palafin", "Varoom", "Revavroom", "Cyclizar", "Orthworm", "Glimmet", "Glimmora", "Greavard", "Houndstone", "Flamigo", "Cetoddle", "Cetitan", "Veluza", "Dondozo", "Tatsugiri", "Annihilape", "Clodsire", "Farigiraf", "Dudunsparce", "Kingambit", "Great Tusk", "Scream Tail", "Brute Bonnet", "Flutter Mane", "Slither Wing", "Sandy Shocks", "Iron Treads", "Iron Bundle", "Iron Hands", "Iron Jugulis", "Iron Moth", "Iron Thorns", "Iron Valiant", "Frigibax", "Arctibax", "Baxcalibur", "Gimmighoul", "Gholdengo", "Wo-Chien", "Chien-Pao", "Ting-Lu", "Chi-Yu", "Roaring Moon", "Koraidon", "Miraidon", "Walking Wake", "Iron Leaves"]);
 
-
-// console log, type chart, colors, scarlet violet dex
-
 let pokemonData = [];
 let potentialCounters = [];
 let currentSort = { column: 'score', ascending: false };
+
+const TYPE_EMOJIS = {
+  Normal: '🔘', Fire: '🔥', Water: '💧', Electric: '⚡', Grass: '🍃', Ice: '❄️',
+  Fighting: '🥊', Poison: '☠️', Ground: '🌎', Flying: '🌬️', Psychic: '🧠',
+  Bug: '🐛', Rock: '🪨', Ghost: '👻', Dragon: '🐉', Dark: '🌑', Steel: '⚙️', Fairy: '✨'
+};
+
+function getMoveBadge(move) {
+  const normalized = normalizeMoveName(move);
+  const type = MOVE_TYPE_LOOKUP[normalized];
+  if (!type) return move;
+  const capType = type.charAt(0).toUpperCase() + type.slice(1);
+  const emoji = TYPE_EMOJIS[capType] || '';
+  const color = TYPE_COLORS[capType] || '#ccc';
+  return `<span class="type-badge-small" style="background-color:${color}" title="${capType}">${emoji} ${move}</span>`;
 
 document.addEventListener('DOMContentLoaded', () => {
   pokemonData = POKEMON_DATA.filter(p => p && p.name && p.types);
@@ -162,8 +174,8 @@ function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderTy
     <details class="moveset-details">
       <summary><strong>📜 Known Raid Moves</strong></summary>
       <div class="move-section">
-        ${bossRaidInfo.base_moves.length ? `<p><strong>Base:</strong> ${bossRaidInfo.base_moves.join(', ')}</p>` : ''}
-        ${bossRaidInfo.additional_moves.length ? `<p><strong>Additional:</strong> ${bossRaidInfo.additional_moves.join(', ')}</p>` : ''}
+        ${bossRaidInfo.base_moves.length ? `<p><strong>Base:</strong> ${bossRaidInfo.base_moves.map(getMoveBadge).join(' ')}</p>` : ''}
+        ${bossRaidInfo.additional_moves.length ? `<p><strong>Additional:</strong> ${bossRaidInfo.additional_moves.map(getMoveBadge).join(' ')}</p>` : ''}
         ${bossRaidInfo.actions.length ? `<p><strong>Actions:</strong><br>${bossRaidInfo.actions.map(a => `• ${a}`).join('<br>')}</p>` : ''}
       </div>
     </details>
