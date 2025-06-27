@@ -157,16 +157,21 @@ function findTeraRaidCounters() {
     }
   });
 
-  currentSort = { column: 'score', ascending: false };
-  renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
-  console.log("🔎 Boss name:", raidBoss.name);
-  console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
+ currentSort = { column: 'score', ascending: false };
+renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
+console.log("🔎 Boss name:", raidBoss.name);
+console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
 }
 
 function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderType) {
   const resultsOutput = document.getElementById('results-output');
   const bossRaidInfo = RAID_BOSS_DATA[raidBoss.name];
   const bossMoves = bossRaidInfo ? [...(bossRaidInfo.base_moves || []), ...(bossRaidInfo.additional_moves || [])] : [];
+
+  // Sort counters based on currentSort setting
+  if (currentSort.column === 'score') {
+    counters.sort((a, b) => currentSort.ascending ? a.score - b.score : b.score - a.score);
+  }
 
   const moveSummary = bossRaidInfo && (
     bossRaidInfo.base_moves.length || bossRaidInfo.additional_moves.length || bossRaidInfo.actions.length
@@ -246,5 +251,4 @@ function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderTy
 
   tableHTML += '</tbody></table></div>';
   resultsOutput.innerHTML = bossInfoHTML + tableHTML;
-}
-
+} 
