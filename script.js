@@ -28,10 +28,11 @@ const TYPE_COLORS = { "Normal": "#A8A77A", "Fire": "#EE8130", "Water": "#6390F0"
 const SCARLET_VIOLET_DEX = new Set(["Sprigatito", "Floragato", "Meowscarada", "Fuecoco", "Crocalor", "Skeledirge", "Quaxly", "Quaxwell", "Quaquaval", "Lechonk", "Oinkologne", "Tarountula", "Spidops", "Nymble", "Lokix", "Pawmi", "Pawmo", "Pawmot", "Tandemaus", "Maushold", "Fidough", "Dachsbun", "Smoliv", "Dolliv", "Arboliva", "Squawkabilly", "Nacli", "Naclstack", "Garganacl", "Charcadet", "Armarouge", "Ceruledge", "Tadbulb", "Bellibolt", "Wattrel", "Kilowattrel", "Maschiff", "Mabosstiff", "Shroodle", "Grafaiai", "Bramblin", "Brambleghast", "Toedscool", "Toedscruel", "Klawf", "Capsakid", "Scovillain", "Rellor", "Rabsca", "Flittle", "Espathra", "Tinkatink", "Tinkatuff", "Tinkaton", "Wiglett", "Wugtrio", "Bombirdier", "Finizen", "Palafin", "Varoom", "Revavroom", "Cyclizar", "Orthworm", "Glimmet", "Glimmora", "Greavard", "Houndstone", "Flamigo", "Cetoddle", "Cetitan", "Veluza", "Dondozo", "Tatsugiri", "Annihilape", "Clodsire", "Farigiraf", "Dudunsparce", "Kingambit", "Great Tusk", "Scream Tail", "Brute Bonnet", "Flutter Mane", "Slither Wing", "Sandy Shocks", "Iron Treads", "Iron Bundle", "Iron Hands", "Iron Jugulis", "Iron Moth", "Iron Thorns", "Iron Valiant", "Frigibax", "Arctibax", "Baxcalibur", "Gimmighoul", "Gholdengo", "Wo-Chien", "Chien-Pao", "Ting-Lu", "Chi-Yu", "Roaring Moon", "Koraidon", "Miraidon", "Walking Wake", "Iron Leaves"]);
 
 
+// console log, type chart, colors, scarlet violet dex
+
 let pokemonData = [];
 let potentialCounters = [];
 let currentSort = { column: 'score', ascending: false };
-
 
 document.addEventListener('DOMContentLoaded', () => {
   pokemonData = POKEMON_DATA.filter(p => p && p.name && p.types);
@@ -52,6 +53,29 @@ function populateTeraTypeSelect() {
 
 function getPokemonByName(name) {
   return pokemonData.find(p => p.name.toLowerCase() === name.toLowerCase());
+}
+
+function normalizeMoveName(name) {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[.’']/g, '');
+}
+
+function getDangerousMoveMatches(counter, bossMoves) {
+  const weaknesses = new Set();
+
+  counter.pokemon.types.forEach(counterType => {
+    bossMoves.forEach(moveName => {
+      const normalized = normalizeMoveName(moveName);
+      const moveType = MOVE_TYPE_LOOKUP[normalized];
+      if (!moveType) return;
+
+      const chart = TYPE_CHART[moveType.charAt(0).toUpperCase() + moveType.slice(1)];
+      if (chart && chart[counterType] > 1) {
+        weaknesses.add(moveType);
+      }
+    });
+  });
+
+  return weaknesses.size > 0 ? Array.from(weaknesses) : null;
 }
 
 function findTeraRaidCounters() {
@@ -84,7 +108,6 @@ function findTeraRaidCounters() {
     const offensiveReasons = [];
     const defensiveReasons = [];
 
-    // Offensive scoring
     counter.types.forEach(counterAttackType => {
       const multiplier = TYPE_CHART[counterAttackType]?.[teraType] ?? 1;
       if (multiplier === 2) {
@@ -93,7 +116,6 @@ function findTeraRaidCounters() {
       }
     });
 
-    // Defensive scoring
     bossOriginalTypes.forEach(bossAttackType => {
       let multiplier = 1;
       counter.types.forEach(counterDefType => {
@@ -106,7 +128,6 @@ function findTeraRaidCounters() {
       else if (multiplier >= 2) { score -= 4; }
     });
 
-    // Stat-based scoring
     const counterStats = counter.baseStats;
     const bossStats = raidBoss.baseStats;
     if (bossAttackerType === 'Physical' && counterStats.def > 100) score += 1;
@@ -124,7 +145,7 @@ function findTeraRaidCounters() {
     }
   });
 
-   currentSort = { column: 'score', ascending: false };
+  currentSort = { column: 'score', ascending: false };
   renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
   console.log("🔎 Boss name:", raidBoss.name);
   console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
@@ -133,19 +154,20 @@ function findTeraRaidCounters() {
 function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderType) {
   const resultsOutput = document.getElementById('results-output');
   const bossRaidInfo = RAID_BOSS_DATA[raidBoss.name];
-const moveSummary = bossRaidInfo && (
-  bossRaidInfo.base_moves.length || bossRaidInfo.additional_moves.length || bossRaidInfo.actions.length
-) ? `
-  <details class="moveset-details">
-    <summary><strong>📜 Known Raid Moves</strong></summary>
-    <div class="move-section">
-      ${bossRaidInfo.base_moves.length ? `<p><strong>Base:</strong> ${bossRaidInfo.base_moves.join(', ')}</p>` : ''}
-      ${bossRaidInfo.additional_moves.length ? `<p><strong>Additional:</strong> ${bossRaidInfo.additional_moves.join(', ')}</p>` : ''}
-      ${bossRaidInfo.actions.length ? `<p><strong>Actions:</strong><br>${bossRaidInfo.actions.map(a => `• ${a}`).join('<br>')}</p>` : ''}
-    </div>
-  </details>
-` : '';
+  const bossMoves = bossRaidInfo ? [...(bossRaidInfo.base_moves || []), ...(bossRaidInfo.additional_moves || [])] : [];
 
+  const moveSummary = bossRaidInfo && (
+    bossRaidInfo.base_moves.length || bossRaidInfo.additional_moves.length || bossRaidInfo.actions.length
+  ) ? `
+    <details class="moveset-details">
+      <summary><strong>📜 Known Raid Moves</strong></summary>
+      <div class="move-section">
+        ${bossRaidInfo.base_moves.length ? `<p><strong>Base:</strong> ${bossRaidInfo.base_moves.join(', ')}</p>` : ''}
+        ${bossRaidInfo.additional_moves.length ? `<p><strong>Additional:</strong> ${bossRaidInfo.additional_moves.join(', ')}</p>` : ''}
+        ${bossRaidInfo.actions.length ? `<p><strong>Actions:</strong><br>${bossRaidInfo.actions.map(a => `• ${a}`).join('<br>')}</p>` : ''}
+      </div>
+    </details>
+  ` : '';
 
   const bossInfoHTML = `
     <div class="boss-info-container">
@@ -172,6 +194,7 @@ const moveSummary = bossRaidInfo && (
             <th>Abilities</th>
             <th>Offensive Advantage</th>
             <th>Defensive Advantage</th>
+            <th>Matchup Alert</th>
             <th data-sort="stat-hp">HP</th>
             <th data-sort="stat-atk">Atk</th>
             <th data-sort="stat-def">Def</th>
@@ -184,19 +207,20 @@ const moveSummary = bossRaidInfo && (
   `;
 
   if (counters.length === 0) {
-    tableHTML += '<tr><td colspan="11">No ideal counters found. Consider Pokémon with neutral matchups.</td></tr>';
+    tableHTML += '<tr><td colspan="12">No ideal counters found. Consider Pokémon with neutral matchups.</td></tr>';
   } else {
     counters.slice(0, 15).forEach(counter => {
+      const riskyMoves = bossMoves.length > 0 ? getDangerousMoveMatches(counter, bossMoves) : null;
+
       tableHTML += `
         <tr>
-          <td>
-            <strong>${counter.pokemon.name}</strong><br>
-            ${counter.pokemon.types.map(t => `<span class="type-badge-small" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}
-          </td>
+          <td><strong>${counter.pokemon.name}</strong><br>
+            ${counter.pokemon.types.map(t => `<span class="type-badge-small" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}</td>
           <td>${counter.score.toFixed(1)}</td>
           <td><span class="reason">${Object.values(counter.pokemon.abilities).join(' / ')}</span></td>
           <td><span class="reason">${counter.offensiveReason || 'None'}</span></td>
           <td><span class="reason">${counter.defensiveReason || 'None'}</span></td>
+          <td><span class="matchup-warning">${riskyMoves ? `⚠️ Weak to ${riskyMoves.join(', ')}` : '—'}</span></td>
           <td><span class="stat-value">${counter.pokemon.baseStats.hp}</span></td>
           <td><span class="stat-value">${counter.pokemon.baseStats.atk}</span></td>
           <td><span class="stat-value">${counter.pokemon.baseStats.def}</span></td>
@@ -211,3 +235,4 @@ const moveSummary = bossRaidInfo && (
   tableHTML += '</tbody></table></div>';
   resultsOutput.innerHTML = bossInfoHTML + tableHTML;
 }
+
