@@ -131,6 +131,21 @@ function findTeraRaidCounters() {
       score += 1.5;
       offensiveReasons.push('Targets weaker Sp. Defense');
     }
+    const moveList = MOVESETS_DATA[counter.name] || [];
+
+const hasEffectiveSTAB = counter.types.some(type =>
+  moveList.some(move => {
+    const moveType = MOVE_TYPE_LOOKUP[move];
+    const effectiveness = TYPE_CHART[moveType]?.[teraType] ?? 1;
+    return moveType === type && effectiveness > 1;
+  })
+);
+
+if (hasEffectiveSTAB) {
+  score += 2;
+  offensiveReasons.push("Has STAB move that's super effective vs Tera type");
+}
+
 
     if (score > 2) {
       potentialCounters.push({
