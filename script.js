@@ -125,15 +125,14 @@ function findTeraRaidCounters() {
   });
 
   currentSort = { column: 'score', ascending: false };
-  renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType)
-  console.log("🔎 Boss name:", boss.name);
-  console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[boss.name]);
-;
+  renderRaidCounters(raidBoss, potentialCounters, bossAttackerType, bossDefenderType);
+  console.log("🔎 Boss name:", raidBoss.name);
+  console.log("📦 Boss data from RAID_BOSS_DATA:", RAID_BOSS_DATA[raidBoss.name]);
 }
 
 function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderType) {
   const resultsOutput = document.getElementById('results-output');
-  const bossRaidInfo = RAID_BOSS_DATA[boss.name];
+  const bossRaidInfo = RAID_BOSS_DATA[raidBoss.name];
   const moveSummary = bossRaidInfo ? `
     <details>
       <summary>Known Raid Moves</summary>
@@ -147,9 +146,9 @@ function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderTy
 
   const bossInfoHTML = `
     <div class="boss-info-container">
-      <h2>Raid Boss: ${boss.name}</h2>
+      <h2>Raid Boss: ${raidBoss.name}</h2>
       <div class="stats-grid">
-        ${Object.entries(boss.baseStats).map(([stat, val]) => {
+        ${Object.entries(raidBoss.baseStats).map(([stat, val]) => {
           return `<span>${stat.toUpperCase()}: <span class="stat-value">${val}</span></span>`;
         }).join('')}
       </div>
@@ -160,5 +159,4 @@ function renderRaidCounters(raidBoss, counters, bossAttackerType, bossDefenderTy
     </div>`;
 
   resultsOutput.innerHTML = bossInfoHTML + '<h2>Top Recommended Counters</h2>';
-  // Append your existing table rendering logic here
 }
