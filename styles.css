@@ -191,3 +191,16 @@ h2 {
   margin-top: 10px;
   font-weight: 500;
 }
+
+.moveset-details {
+  margin-top: 1rem;
+}
+.moveset-details summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+.move-section {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
