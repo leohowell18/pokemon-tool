@@ -64,7 +64,7 @@ h2 {
   margin-bottom: 1.5rem;
   background-color: #3a3a3a;
   border-radius: 8px;
-  border: 1px solid #555;
+  border: 1px solid #777;
   text-align: center;
 }
 
@@ -145,6 +145,30 @@ h2 {
 .stat-average   { background-color: #6c757d; }
 .stat-low       { background-color: #d9534f; }
 
+.stat-high {
+  color: #4ade80;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+}
+
+.stat-mid {
+  color: #facc15;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+}
+
+.stat-low {
+  color: #f87171;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+}
+
 .pokedex-table-container {
   overflow-x: auto;
   margin-top: 1.5rem;
@@ -177,6 +201,10 @@ h2 {
   background-color: #444;
 }
 
+.pokedex-table tr:hover {
+  background-color: #383838;
+}
+
 .pokedex-table td .reason {
   font-size: 0.85em;
   display: block;
@@ -195,10 +223,18 @@ h2 {
 .moveset-details {
   margin-top: 1rem;
 }
+
 .moveset-details summary {
   cursor: pointer;
   font-weight: bold;
+  margin-bottom: 0.5rem;
 }
+
+.move-section p {
+  margin: 0.25rem 0;
+  padding-left: 1rem;
+}
+
 .move-section {
   margin-top: 0.5rem;
   font-size: 0.95rem;
