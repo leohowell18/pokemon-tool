@@ -1,11 +1,10 @@
-/* styles.css - Dark Mode for Tera Raid Counter Finder */
-
 :root {
   color-scheme: dark;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
   background-color: #1e1e1e;
   color: #eee;
   line-height: 1.6;
@@ -22,7 +21,8 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-h1, h2 {
+h1,
+h2 {
   text-align: center;
   color: #fff;
 }
@@ -116,7 +116,7 @@ h2 {
   border-radius: 4px;
   color: white;
   font-weight: 500;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .type-badge {
@@ -128,7 +128,7 @@ h2 {
   padding: 2px 8px;
   font-size: 0.85em;
   margin: 0 2px;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 .stat-value {
@@ -136,21 +136,31 @@ h2 {
   border-radius: 4px;
   color: white;
   font-weight: bold;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
 }
 
-.stat-excellent { background-color: #28a745; }
-.stat-great     { background-color: #8BC34A; }
-.stat-good      { background-color: #007bff; }
-.stat-average   { background-color: #6c757d; }
-.stat-low       { background-color: #d9534f; }
+.stat-excellent {
+  background-color: #28a745;
+}
+.stat-great {
+  background-color: #8bc34a;
+}
+.stat-good {
+  background-color: #007bff;
+}
+.stat-average {
+  background-color: #6c757d;
+}
+.stat-low {
+  background-color: #d9534f;
+}
 
 .stat-high {
   color: #4ade80;
   font-weight: bold;
   padding: 2px 8px;
   border-radius: 4px;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 .stat-mid {
@@ -158,7 +168,7 @@ h2 {
   font-weight: bold;
   padding: 2px 8px;
   border-radius: 4px;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 .stat-low {

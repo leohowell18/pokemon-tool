@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tera Raid Counter Finder</title>
+    <link rel="stylesheet" href="../css/raid-helper.css" />
+  </head>
+  <body class="dark-mode">
+    <div class="container">
+      <h1>Tera Raid Counter Finder</h1>
+      <div id="raid-input-grid">
+        <div class="raid-slot">
+          <label for="raid-boss-name">Raid Boss</label>
+          <input
+            type="text"
+            id="raid-boss-name"
+            list="pokemon-list"
+            placeholder="Enter Raid Boss Pokémon..."
+          />
+          <datalist id="pokemon-list"></datalist>
+        </div>
+        <div class="raid-slot">
+          <label for="tera-type-select">Tera Type</label>
+          <select id="tera-type-select"></select>
+        </div>
+      </div>
+      <div class="filter-controls">
+        <label>
+          <input type="checkbox" id="filter-sv" /> Filter for Pokémon in Scarlet
+          & Violet
+        </label>
+      </div>
+      <div id="controls">
+        <button id="find-counters-btn">Find Counters</button>
+      </div>
+      <div id="error-message"></div>
+      <div id="results-output"></div>
+    </div>
+
+    <script src="pokedex-data.js"></script>
+    <script src="combined-tera-raid-data.js"></script>
+    <script src="move-type-lookup.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
