@@ -156,19 +156,21 @@ h2 {
 }
 
 .stat-high {
-  color: #4ade80;
+  background-color: #4ade80;
+  color: #000;
   font-weight: bold;
   padding: 2px 8px;
   border-radius: 4px;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+  text-shadow: none;
 }
 
 .stat-mid {
-  color: #facc15;
+  background-color: #facc15;
+  color: #000;
   font-weight: bold;
   padding: 2px 8px;
   border-radius: 4px;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+  text-shadow: none;
 }
 
 .stat-low {
@@ -237,15 +239,18 @@ h2 {
 }
 
 .stats-grid .stat-value.stat-high {
-  color: #4ade80;
+  background-color: #4ade80;
+  color: #000;
 }
 
 .stats-grid .stat-value.stat-mid {
-  color: #facc15;
+  background-color: #facc15;
+  color: #000;
 }
 
 .stats-grid .stat-value.stat-low {
-  color: #f87171;
+  background-color: #f87171;
+  color: #000;
 }
 
 .moveset-details {

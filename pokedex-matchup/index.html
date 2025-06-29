@@ -208,7 +208,7 @@
       const resultsContainer = document.getElementById("results-container");
       const pokemonInput = document.getElementById("pokemonSelect");
 
-      fetch("pokemon-types.json")
+      fetch("../data/pokemon-types.json")
         .then((res) => res.json())
         .then((data) => {
           pokemonTypeMap = data;

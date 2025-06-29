@@ -5,6 +5,10 @@ body {
   color: #333;
   line-height: 1.6;
 }
+body.dark {
+  background-color: #1e1e2f;
+  color: #e0e0e0;
+}
 .container {
   max-width: 1200px;
   margin: 20px auto;
@@ -12,6 +16,10 @@ body {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+body.dark .container {
+  background: #2c2c3a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 h1,
 h2 {
@@ -24,6 +32,9 @@ h2 {
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
   margin-top: 40px;
+}
+body.dark h2 {
+  border-bottom: 1px solid #444;
 }
 
 #team-input-grid {
@@ -38,6 +49,13 @@ h2 {
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
+  background-color: #fff;
+  color: #333;
+}
+body.dark .team-slot input {
+  background-color: #3a3a4a;
+  color: #e0e0e0;
+  border: 1px solid #555;
 }
 #controls {
   text-align: center;
@@ -72,6 +90,9 @@ h2 {
   padding: 15px;
   border-radius: 8px;
 }
+body.dark .summary-column {
+  background: #333344;
+}
 .summary-column h3 {
   margin-top: 0;
 }
@@ -86,6 +107,9 @@ h2 {
   padding: 20px;
   border-radius: 8px;
 }
+body.dark .pokemon-card {
+  background: #333344;
+}
 .pokemon-card h3 {
   margin-top: 0;
   display: inline-block;
@@ -95,6 +119,9 @@ h2 {
   border-bottom: 1px solid #ddd;
   padding-bottom: 5px;
   margin-top: 20px;
+}
+body.dark .pokemon-card h4 {
+  border-bottom: 1px solid #555;
 }
 
 .type-badge {
@@ -144,6 +171,9 @@ h2 {
   font-style: italic;
   color: #555;
   font-size: 0.9em;
+}
+body.dark .abilities-list {
+  color: #ccc;
 }
 
 .stats-grid {
