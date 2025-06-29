@@ -44,6 +44,8 @@
     </div>
     <script>
       let pokemonTypeMap = {};
+      const displayToCanonical = {};
+
       const allTypes = [
         "normal",
         "fire",
@@ -64,6 +66,7 @@
         "steel",
         "fairy",
       ];
+
       const typeChart = {
         normal: { rock: 0.5, ghost: 0, steel: 0.5 },
         fire: {
@@ -204,8 +207,6 @@
       const type2Group = document.getElementById("type-2-group");
       const resultsContainer = document.getElementById("results-container");
       const pokemonInput = document.getElementById("pokemonSelect");
-      const selected = pokemonInput.value.toLowerCase();
-      const types = pokemonTypeMap[selected];
 
       fetch("pokemon-types.json")
         .then((res) => res.json())
@@ -244,13 +245,18 @@
       function populateDatalistFromMap(typeMap) {
         const datalist = document.getElementById("pokemonList");
         datalist.innerHTML = Object.keys(typeMap)
-          .map((name) => `<option value="${prettifyName(name)}"></option>`)
+          .map((name) => {
+            const pretty = prettifyName(name);
+            displayToCanonical[pretty.toLowerCase()] = name;
+            return `<option value="${pretty}"></option>`;
+          })
           .join("");
       }
 
       pokemonInput.addEventListener("change", () => {
-        const selected = pokemonInput.value.toLowerCase();
-        const types = pokemonTypeMap[selected];
+        const display = pokemonInput.value.toLowerCase();
+        const canonical = displayToCanonical[display];
+        const types = pokemonTypeMap[canonical];
         if (types) {
           type1Select.value = types[0];
           type2Select.value = types[1] || "None";
@@ -286,19 +292,14 @@
         const type1 = type1Select.value;
         const type2 = type2Select.value;
         resultsContainer.innerHTML = "";
+
         if (mode === "defending") {
           type2Group.style.display = "block";
           type2Select.disabled = false;
           allTypes.forEach((attackingType) => {
-            const multiplier1 =
-              typeChart[attackingType.toLowerCase()]?.[type1.toLowerCase()] ??
-              1;
+            const multiplier1 = typeChart[attackingType]?.[type1] ?? 1;
             const multiplier2 =
-              type2 === "None"
-                ? 1
-                : typeChart[attackingType.toLowerCase()]?.[
-                    type2.toLowerCase()
-                  ] ?? 1;
+              type2 === "None" ? 1 : typeChart[attackingType]?.[type2] ?? 1;
             const finalMultiplier = multiplier1 * multiplier2;
             const effectiveness = getResultClassAndText(finalMultiplier);
             const label = `${attackingType} → ${
