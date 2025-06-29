@@ -1,210 +1,552 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sortable Pokédex</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 1rem 2rem;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        h1 { text-align: center; margin-top: 0; }
-        
-        .filter-controls {
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-        .filter-controls h4 {
-            margin-top: 0;
-            margin-bottom: 0.5rem;
-        }
-        .filter-controls label {
-            margin-right: 1.5rem;
-            font-weight: 500;
-        }
+    <link rel="stylesheet" href="../css/pokedex.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Full Sortable Pokédex</h1>
 
-        /* Type and Stat Badge Styling */
-        .type-badge-small {
-            display: inline-block;
-            padding: 2px 8px;
-            font-size: 0.85em;
-            border-radius: 4px;
-            color: white;
-            font-weight: 500;
-            margin: 0 2px;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-        }
-        .stat-value {
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: white;
-            font-weight: bold;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-        }
-        .stat-excellent { background-color: #28a745; }
-        .stat-great { background-color: #8BC34A; }
-        .stat-good { background-color: #007bff; }
-        .stat-average { background-color: #6c757d; }
-        .stat-low { background-color: #d9534f; }
-
-        /* Pokedex Table Styling */
-        .pokedex-table-container {
-            overflow-x: auto;
-        }
-        .pokedex-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        .pokedex-table th, .pokedex-table td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-            white-space: nowrap;
-        }
-        .pokedex-table th {
-            background-color: #f2f2f2;
-            cursor: pointer;
-            user-select: none;
-            position: sticky;
-            top: 0;
-        }
-        .pokedex-table th:hover { background-color: #e2e2e2; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>Full Sortable Pokédex</h1>
-
-    <div class="filter-controls">
+      <div class="filter-controls">
         <h4>Filter by Game:</h4>
         <label>
-            <input type="checkbox" id="filter-sv" value="sv"> Scarlet & Violet
+          <input type="checkbox" id="filter-sv" value="sv" /> Scarlet & Violet
         </label>
-    </div>
+      </div>
 
-    <div class="pokedex-table-container">
+      <div class="pokedex-table-container">
         <table class="pokedex-table">
-            <thead id="pokedex-table-head"></thead>
-            <tbody id="pokedex-table-body"></tbody>
+          <thead id="pokedex-table-head"></thead>
+          <tbody id="pokedex-table-body"></tbody>
         </table>
+      </div>
     </div>
-</div>
 
-<!-- This first script tag loads your external data file. 
+    <!-- This first script tag loads your external data file. 
      The browser will execute this file, making the POKEMON_DATA constant available. -->
-<script src="pokedex-data.js"></script>
+    <script src="pokedex-data.js"></script>
 
-<!-- This second script runs *after* the data has been loaded,
+    <!-- This second script runs *after* the data has been loaded,
      so it can access and use the POKEMON_DATA constant. -->
-<script>
-// --- DATA AND CONFIGURATION ---
+    <script>
+      // --- DATA AND CONFIGURATION ---
 
-// The POKEMON_DATA constant is now loaded from the 'pokedex-data.js' file.
+      // The POKEMON_DATA constant is now loaded from the 'pokedex-data.js' file.
 
-const SCARLET_VIOLET_DEX = new Set(["Sprigatito","Floragato","Meowscarada","Fuecoco","Crocalor","Skeledirge","Quaxly","Quaxwell","Quaquaval","Lechonk","Oinkologne","Tarountula","Spidops","Nymble","Lokix","Pawmi","Pawmo","Pawmot","Tandemaus","Maushold","Fidough","Dachsbun","Smoliv","Dolliv","Arboliva","Squawkabilly","Nacli","Naclstack","Garganacl","Charcadet","Armarouge","Ceruledge","Tadbulb","Bellibolt","Wattrel","Kilowattrel","Maschiff","Mabosstiff","Shroodle","Grafaiai","Bramblin","Brambleghast","Toedscool","Toedscruel","Klawf","Capsakid","Scovillain","Rellor","Rabsca","Flittle","Espathra","Tinkatink","Tinkatuff","Tinkaton","Wiglett","Wugtrio","Bombirdier","Finizen","Palafin","Varoom","Revavroom","Cyclizar","Orthworm","Glimmet","Glimmora","Greavard","Houndstone","Flamigo","Cetoddle","Cetitan","Veluza","Dondozo","Tatsugiri","Annihilape","Clodsire","Farigiraf","Dudunsparce","Kingambit","Great Tusk","Scream Tail","Brute Bonnet","Flutter Mane","Slither Wing","Sandy Shocks","Iron Treads","Iron Bundle","Iron Hands","Iron Jugulis","Iron Moth","Iron Thorns","Iron Valiant","Frigibax","Arctibax","Baxcalibur","Gimmighoul","Gholdengo","Wo-Chien","Chien-Pao","Ting-Lu","Chi-Yu","Roaring Moon","Iron Boulder","Koraidon","Miraidon","Walking Wake","Iron Leaves","Dipplin","Poltchageist","Sinistcha","Okidogi","Munkidori","Fezandipiti","Ogerpon","Pichu","Pikachu","Raichu","Hoppip","Skiploom","Jumpluff","Fletchling","Fletchinder","Talonflame","Pawniard","Bisharp","Kingambit","Wooper","Clodsire","Murkrow","Honchkrow","Happiny","Chansey","Blissey","Azurill","Marill","Azumarill","Surskit","Masquerain","Buizel","Floatzel","Psyduck","Golduck","Chewtle","Drednaw","Igglybuff","Jigglypuff","Wigglytuff","Tandemaus","Maushold","Pichu","Pikachu","Raichu","Slakoth","Vigoroth","Slaking","Bounsweet","Steenee","Tsareena","Smoliv","Dolliv","Arboliva","Bonsly","Sudowoodo","Rockruff","Lycanroc","Rolycoly","Carkol","Coalossal","Shinx","Luxio","Luxray","Starly","Staravia","Staraptor","Oricorio","Mareep","Flaaffy","Ampharos","Petilil","Lilligant","Shroomish","Breloom","Applin","Flapple","Appletun","Dipplin","Spoink","Grumpig","Misdreavus","Mismagius","Makuhita","Hariyama","Crabrawler","Salandit","Salazzle","Phanpy","Donphan","Cufant","Copperajah","Gible","Gabite","Garchomp","Nacli","Naclstack","Garganacl","Wingull","Pelipper","Magikarp","Gyarados","Arrokuda","Barraskewda","Basculin","Basculegion","Gulpin","Swalot","Meowth","Persian","Drifloon","Drifblim","Flabébé","Floette","Florges","Diglett","Dugtrio","Torkoal","Numel","Camerupt","Bronzor","Bronzong","Axew","Fraxure","Haxorus","Mankey","Primeape","Annihilape","Meditite","Medicham","Riolu","Lucario","Charcadet","Armarouge","Ceruledge","Barboach","Whiscash","Tadbulb","Bellibolt","Goomy","Sliggoo","Goodra","Croagunk","Toxicroak","Wattrel","Kilowattrel","Eevee","Vaporeon","Jolteon","Flareon","Espeon","Umbreon","Leafeon","Glaceon","Sylveon","Dunsparce","Dudunsparce","Zorua","Zoroark","Sneasel","Weavile","Murkrow","Honchkrow","Gothita","Gothorita","Gothitelle","Sinistea","Polteageist","Mimikyu","Klefki","Indeedee","Bramblin","Brambleghast","Toedscool","Toedscruel","Tropius","Fomantis","Lurantis","Klawf","Capsakid","Scovillain","Cacnea","Cacturne","Rellor","Rabsca","Venonat","Venomoth","Pineco","Forretress","Scyther","Scizor","Heracross","Flittle","Espathra","Hippopotas","Hippowdon","Sandile","Krokorok","Krookodile","Silicobra","Sandaconda","Mudbray","Mudsdale","Shroodle","Grafaiai","Tadbulb","Bellibolt","Torkoal","Numel","Camerupt","Sizzlipede","Centiskorch","Larvesta","Volcarona","Bagon","Shelgon","Salamence","Litleo","Pyroar","Skwovet","Greedent","Oricorio","Stunky","Skuntank","Zorua","Zoroark","Sneasel","Weavile","Murkrow","Honchkrow","Deino","Zweilous","Hydreigon","Dreepy","Drakloak","Dragapult","Passimian","Oranguru","Larvitar","Pupitar","Tyranitar","Stonjourner","Eiscue","Pincurchin","Sandygast","Palossand","Slowpoke","Slowbro","Slowking","Shellos","Gastrodon","Shellder","Cloyster","Qwilfish","Overqwil","Luvdisc","Finizen","Palafin","Bruxish","Alomomola","Skrelp","Dragalge","Clauncher","Clawitzer","Tynamo","Eelektrik","Eelektross","Mareanie","Toxapex","Lumineon","Dratini","Dragonair","Dragonite","Iron Treads","Iron Bundle","Iron Hands","Iron Jugulis","Iron Moth","Iron Thorns","Iron Valiant","Frigibax","Arctibax","Baxcalibur","Gimmighoul","Gholdengo","Wo-Chien","Chien-Pao","Ting-Lu","Chi-Yu","Roaring Moon","Koraidon","Miraidon"]);
+      const SCARLET_VIOLET_DEX = new Set([
+        "Sprigatito",
+        "Floragato",
+        "Meowscarada",
+        "Fuecoco",
+        "Crocalor",
+        "Skeledirge",
+        "Quaxly",
+        "Quaxwell",
+        "Quaquaval",
+        "Lechonk",
+        "Oinkologne",
+        "Tarountula",
+        "Spidops",
+        "Nymble",
+        "Lokix",
+        "Pawmi",
+        "Pawmo",
+        "Pawmot",
+        "Tandemaus",
+        "Maushold",
+        "Fidough",
+        "Dachsbun",
+        "Smoliv",
+        "Dolliv",
+        "Arboliva",
+        "Squawkabilly",
+        "Nacli",
+        "Naclstack",
+        "Garganacl",
+        "Charcadet",
+        "Armarouge",
+        "Ceruledge",
+        "Tadbulb",
+        "Bellibolt",
+        "Wattrel",
+        "Kilowattrel",
+        "Maschiff",
+        "Mabosstiff",
+        "Shroodle",
+        "Grafaiai",
+        "Bramblin",
+        "Brambleghast",
+        "Toedscool",
+        "Toedscruel",
+        "Klawf",
+        "Capsakid",
+        "Scovillain",
+        "Rellor",
+        "Rabsca",
+        "Flittle",
+        "Espathra",
+        "Tinkatink",
+        "Tinkatuff",
+        "Tinkaton",
+        "Wiglett",
+        "Wugtrio",
+        "Bombirdier",
+        "Finizen",
+        "Palafin",
+        "Varoom",
+        "Revavroom",
+        "Cyclizar",
+        "Orthworm",
+        "Glimmet",
+        "Glimmora",
+        "Greavard",
+        "Houndstone",
+        "Flamigo",
+        "Cetoddle",
+        "Cetitan",
+        "Veluza",
+        "Dondozo",
+        "Tatsugiri",
+        "Annihilape",
+        "Clodsire",
+        "Farigiraf",
+        "Dudunsparce",
+        "Kingambit",
+        "Great Tusk",
+        "Scream Tail",
+        "Brute Bonnet",
+        "Flutter Mane",
+        "Slither Wing",
+        "Sandy Shocks",
+        "Iron Treads",
+        "Iron Bundle",
+        "Iron Hands",
+        "Iron Jugulis",
+        "Iron Moth",
+        "Iron Thorns",
+        "Iron Valiant",
+        "Frigibax",
+        "Arctibax",
+        "Baxcalibur",
+        "Gimmighoul",
+        "Gholdengo",
+        "Wo-Chien",
+        "Chien-Pao",
+        "Ting-Lu",
+        "Chi-Yu",
+        "Roaring Moon",
+        "Iron Boulder",
+        "Koraidon",
+        "Miraidon",
+        "Walking Wake",
+        "Iron Leaves",
+        "Dipplin",
+        "Poltchageist",
+        "Sinistcha",
+        "Okidogi",
+        "Munkidori",
+        "Fezandipiti",
+        "Ogerpon",
+        "Pichu",
+        "Pikachu",
+        "Raichu",
+        "Hoppip",
+        "Skiploom",
+        "Jumpluff",
+        "Fletchling",
+        "Fletchinder",
+        "Talonflame",
+        "Pawniard",
+        "Bisharp",
+        "Kingambit",
+        "Wooper",
+        "Clodsire",
+        "Murkrow",
+        "Honchkrow",
+        "Happiny",
+        "Chansey",
+        "Blissey",
+        "Azurill",
+        "Marill",
+        "Azumarill",
+        "Surskit",
+        "Masquerain",
+        "Buizel",
+        "Floatzel",
+        "Psyduck",
+        "Golduck",
+        "Chewtle",
+        "Drednaw",
+        "Igglybuff",
+        "Jigglypuff",
+        "Wigglytuff",
+        "Tandemaus",
+        "Maushold",
+        "Pichu",
+        "Pikachu",
+        "Raichu",
+        "Slakoth",
+        "Vigoroth",
+        "Slaking",
+        "Bounsweet",
+        "Steenee",
+        "Tsareena",
+        "Smoliv",
+        "Dolliv",
+        "Arboliva",
+        "Bonsly",
+        "Sudowoodo",
+        "Rockruff",
+        "Lycanroc",
+        "Rolycoly",
+        "Carkol",
+        "Coalossal",
+        "Shinx",
+        "Luxio",
+        "Luxray",
+        "Starly",
+        "Staravia",
+        "Staraptor",
+        "Oricorio",
+        "Mareep",
+        "Flaaffy",
+        "Ampharos",
+        "Petilil",
+        "Lilligant",
+        "Shroomish",
+        "Breloom",
+        "Applin",
+        "Flapple",
+        "Appletun",
+        "Dipplin",
+        "Spoink",
+        "Grumpig",
+        "Misdreavus",
+        "Mismagius",
+        "Makuhita",
+        "Hariyama",
+        "Crabrawler",
+        "Salandit",
+        "Salazzle",
+        "Phanpy",
+        "Donphan",
+        "Cufant",
+        "Copperajah",
+        "Gible",
+        "Gabite",
+        "Garchomp",
+        "Nacli",
+        "Naclstack",
+        "Garganacl",
+        "Wingull",
+        "Pelipper",
+        "Magikarp",
+        "Gyarados",
+        "Arrokuda",
+        "Barraskewda",
+        "Basculin",
+        "Basculegion",
+        "Gulpin",
+        "Swalot",
+        "Meowth",
+        "Persian",
+        "Drifloon",
+        "Drifblim",
+        "Flabébé",
+        "Floette",
+        "Florges",
+        "Diglett",
+        "Dugtrio",
+        "Torkoal",
+        "Numel",
+        "Camerupt",
+        "Bronzor",
+        "Bronzong",
+        "Axew",
+        "Fraxure",
+        "Haxorus",
+        "Mankey",
+        "Primeape",
+        "Annihilape",
+        "Meditite",
+        "Medicham",
+        "Riolu",
+        "Lucario",
+        "Charcadet",
+        "Armarouge",
+        "Ceruledge",
+        "Barboach",
+        "Whiscash",
+        "Tadbulb",
+        "Bellibolt",
+        "Goomy",
+        "Sliggoo",
+        "Goodra",
+        "Croagunk",
+        "Toxicroak",
+        "Wattrel",
+        "Kilowattrel",
+        "Eevee",
+        "Vaporeon",
+        "Jolteon",
+        "Flareon",
+        "Espeon",
+        "Umbreon",
+        "Leafeon",
+        "Glaceon",
+        "Sylveon",
+        "Dunsparce",
+        "Dudunsparce",
+        "Zorua",
+        "Zoroark",
+        "Sneasel",
+        "Weavile",
+        "Murkrow",
+        "Honchkrow",
+        "Gothita",
+        "Gothorita",
+        "Gothitelle",
+        "Sinistea",
+        "Polteageist",
+        "Mimikyu",
+        "Klefki",
+        "Indeedee",
+        "Bramblin",
+        "Brambleghast",
+        "Toedscool",
+        "Toedscruel",
+        "Tropius",
+        "Fomantis",
+        "Lurantis",
+        "Klawf",
+        "Capsakid",
+        "Scovillain",
+        "Cacnea",
+        "Cacturne",
+        "Rellor",
+        "Rabsca",
+        "Venonat",
+        "Venomoth",
+        "Pineco",
+        "Forretress",
+        "Scyther",
+        "Scizor",
+        "Heracross",
+        "Flittle",
+        "Espathra",
+        "Hippopotas",
+        "Hippowdon",
+        "Sandile",
+        "Krokorok",
+        "Krookodile",
+        "Silicobra",
+        "Sandaconda",
+        "Mudbray",
+        "Mudsdale",
+        "Shroodle",
+        "Grafaiai",
+        "Tadbulb",
+        "Bellibolt",
+        "Torkoal",
+        "Numel",
+        "Camerupt",
+        "Sizzlipede",
+        "Centiskorch",
+        "Larvesta",
+        "Volcarona",
+        "Bagon",
+        "Shelgon",
+        "Salamence",
+        "Litleo",
+        "Pyroar",
+        "Skwovet",
+        "Greedent",
+        "Oricorio",
+        "Stunky",
+        "Skuntank",
+        "Zorua",
+        "Zoroark",
+        "Sneasel",
+        "Weavile",
+        "Murkrow",
+        "Honchkrow",
+        "Deino",
+        "Zweilous",
+        "Hydreigon",
+        "Dreepy",
+        "Drakloak",
+        "Dragapult",
+        "Passimian",
+        "Oranguru",
+        "Larvitar",
+        "Pupitar",
+        "Tyranitar",
+        "Stonjourner",
+        "Eiscue",
+        "Pincurchin",
+        "Sandygast",
+        "Palossand",
+        "Slowpoke",
+        "Slowbro",
+        "Slowking",
+        "Shellos",
+        "Gastrodon",
+        "Shellder",
+        "Cloyster",
+        "Qwilfish",
+        "Overqwil",
+        "Luvdisc",
+        "Finizen",
+        "Palafin",
+        "Bruxish",
+        "Alomomola",
+        "Skrelp",
+        "Dragalge",
+        "Clauncher",
+        "Clawitzer",
+        "Tynamo",
+        "Eelektrik",
+        "Eelektross",
+        "Mareanie",
+        "Toxapex",
+        "Lumineon",
+        "Dratini",
+        "Dragonair",
+        "Dragonite",
+        "Iron Treads",
+        "Iron Bundle",
+        "Iron Hands",
+        "Iron Jugulis",
+        "Iron Moth",
+        "Iron Thorns",
+        "Iron Valiant",
+        "Frigibax",
+        "Arctibax",
+        "Baxcalibur",
+        "Gimmighoul",
+        "Gholdengo",
+        "Wo-Chien",
+        "Chien-Pao",
+        "Ting-Lu",
+        "Chi-Yu",
+        "Roaring Moon",
+        "Koraidon",
+        "Miraidon",
+      ]);
 
-const TYPE_COLORS = { "Normal": "#A8A77A", "Fire": "#EE8130", "Water": "#6390F0", "Electric": "#F7D02C", "Grass": "#7AC74C", "Ice": "#96D9D6", "Fighting": "#C22E28", "Poison": "#A33EA1", "Ground": "#E2BF65", "Flying": "#A98FF3", "Psychic": "#F95587", "Bug": "#A6B91A", "Rock": "#B6A136", "Ghost": "#735797", "Dragon": "#6F35FC", "Dark": "#705746", "Steel": "#B7B7CE", "Fairy": "#D685AD" };
-let pokemonData = [];
-let filteredPokemonData = [];
-let currentSort = { column: 'name', ascending: true };
+      const TYPE_COLORS = {
+        Normal: "#A8A77A",
+        Fire: "#EE8130",
+        Water: "#6390F0",
+        Electric: "#F7D02C",
+        Grass: "#7AC74C",
+        Ice: "#96D9D6",
+        Fighting: "#C22E28",
+        Poison: "#A33EA1",
+        Ground: "#E2BF65",
+        Flying: "#A98FF3",
+        Psychic: "#F95587",
+        Bug: "#A6B91A",
+        Rock: "#B6A136",
+        Ghost: "#735797",
+        Dragon: "#6F35FC",
+        Dark: "#705746",
+        Steel: "#B7B7CE",
+        Fairy: "#D685AD",
+      };
+      let pokemonData = [];
+      let filteredPokemonData = [];
+      let currentSort = { column: "name", ascending: true };
 
-// --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-    pokemonData = POKEMON_DATA.filter(p => p && p.name && p.types);
-    filteredPokemonData = [...pokemonData];
-    
-    setupPokedexTable();
-    
-    document.getElementById('filter-sv').addEventListener('change', applyFilters);
-});
-
-
-// --- POKEDEX TABLE LOGIC ---
-function applyFilters() {
-    const svFilter = document.getElementById('filter-sv').checked;
-
-    if (svFilter) {
-        filteredPokemonData = pokemonData.filter(p => SCARLET_VIOLET_DEX.has(p.name));
-    } else {
+      // --- INITIALIZATION ---
+      document.addEventListener("DOMContentLoaded", () => {
+        pokemonData = POKEMON_DATA.filter((p) => p && p.name && p.types);
         filteredPokemonData = [...pokemonData];
-    }
-    
-    // After filtering, re-sort and re-render the table
-    sortAndRenderPokedexTable();
-}
 
-function setupPokedexTable() {
-    const tableHead = document.getElementById('pokedex-table-head');
-    renderPokedexTableHeaders(); // Render headers once
+        setupPokedexTable();
 
-    tableHead.addEventListener('click', (event) => {
-        const header = event.target.closest('th');
-        if (!header || !header.dataset.sort) return;
+        document
+          .getElementById("filter-sv")
+          .addEventListener("change", applyFilters);
+      });
 
-        const column = header.dataset.sort;
-        if (currentSort.column === column) {
-            currentSort.ascending = !currentSort.ascending;
+      // --- POKEDEX TABLE LOGIC ---
+      function applyFilters() {
+        const svFilter = document.getElementById("filter-sv").checked;
+
+        if (svFilter) {
+          filteredPokemonData = pokemonData.filter((p) =>
+            SCARLET_VIOLET_DEX.has(p.name)
+          );
         } else {
+          filteredPokemonData = [...pokemonData];
+        }
+
+        // After filtering, re-sort and re-render the table
+        sortAndRenderPokedexTable();
+      }
+
+      function setupPokedexTable() {
+        const tableHead = document.getElementById("pokedex-table-head");
+        renderPokedexTableHeaders(); // Render headers once
+
+        tableHead.addEventListener("click", (event) => {
+          const header = event.target.closest("th");
+          if (!header || !header.dataset.sort) return;
+
+          const column = header.dataset.sort;
+          if (currentSort.column === column) {
+            currentSort.ascending = !currentSort.ascending;
+          } else {
             currentSort.column = column;
             currentSort.ascending = true;
-        }
-        sortAndRenderPokedexTable();
-    });
+          }
+          sortAndRenderPokedexTable();
+        });
 
-    sortAndRenderPokedexTable(); // Initial sort and render
-}
+        sortAndRenderPokedexTable(); // Initial sort and render
+      }
 
-function sortAndRenderPokedexTable() {
-    const { column, ascending } = currentSort;
-    
-    // Sort the currently filtered data, not the master list
-    filteredPokemonData.sort((a, b) => {
-        let valA, valB;
+      function sortAndRenderPokedexTable() {
+        const { column, ascending } = currentSort;
 
-        if (column.startsWith('stat-')) {
-            const stat = column.split('-')[1];
+        // Sort the currently filtered data, not the master list
+        filteredPokemonData.sort((a, b) => {
+          let valA, valB;
+
+          if (column.startsWith("stat-")) {
+            const stat = column.split("-")[1];
             valA = a.baseStats[stat];
             valB = b.baseStats[stat];
-        } else {
+          } else {
             // Special case for 'types' to sort by the first type
-            if (column === 'types') {
-                valA = a.types[0];
-                valB = b.types[0];
+            if (column === "types") {
+              valA = a.types[0];
+              valB = b.types[0];
             } else {
-                valA = a[column];
-                valB = b[column];
+              valA = a[column];
+              valB = b[column];
             }
-        }
+          }
 
-        if (typeof valA === 'string') {
-            return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        } else {
+          if (typeof valA === "string") {
+            return ascending
+              ? valA.localeCompare(valB)
+              : valB.localeCompare(valA);
+          } else {
             return ascending ? valA - valB : valB - valA;
-        }
-    });
-    renderPokedexTableBody();
-}
+          }
+        });
+        renderPokedexTableBody();
+      }
 
-function renderPokedexTableHeaders() {
-    const head = document.getElementById('pokedex-table-head');
-    if (head.innerHTML === '') {
-        head.innerHTML = `
+      function renderPokedexTableHeaders() {
+        const head = document.getElementById("pokedex-table-head");
+        if (head.innerHTML === "") {
+          head.innerHTML = `
             <tr>
                 <th data-sort="name">Name</th>
                 <th data-sort="types">Types</th>
@@ -217,34 +559,54 @@ function renderPokedexTableHeaders() {
                 <th data-sort="stat-spe">Spe</th>
             </tr>
         `;
-    }
-}
+        }
+      }
 
-function renderPokedexTableBody() {
-    const body = document.getElementById('pokedex-table-body');
-    body.innerHTML = filteredPokemonData.map(pokemon => `
+      function renderPokedexTableBody() {
+        const body = document.getElementById("pokedex-table-body");
+        body.innerHTML = filteredPokemonData
+          .map(
+            (pokemon) => `
         <tr>
             <td>${pokemon.name}</td>
-            <td>${pokemon.types.map(t => `<span class="type-badge-small" style="background-color:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}</td>
-            <td>${Object.values(pokemon.abilities).join(' / ')}</td>
-            <td><span class="stat-value ${getStatClass(pokemon.baseStats.hp)}">${pokemon.baseStats.hp}</span></td>
-            <td><span class="stat-value ${getStatClass(pokemon.baseStats.atk)}">${pokemon.baseStats.atk}</span></td>
-            <td><span class="stat-value ${getStatClass(pokemon.baseStats.def)}">${pokemon.baseStats.def}</span></td>
-            <td><span class="stat-value ${getStatClass(pokemon.baseStats.spa)}">${pokemon.baseStats.spa}</span></td>
-            <td><span class="stat-value ${getStatClass(pokemon.baseStats.spd)}">${pokemon.baseStats.spd}</span></td>
-            <td><span class="stat-value ${getStatClass(pokemon.baseStats.spe)}">${pokemon.baseStats.spe}</span></td>
+            <td>${pokemon.types
+              .map(
+                (t) =>
+                  `<span class="type-badge-small" style="background-color:${TYPE_COLORS[t]}">${t}</span>`
+              )
+              .join(" ")}</td>
+            <td>${Object.values(pokemon.abilities).join(" / ")}</td>
+            <td><span class="stat-value ${getStatClass(
+              pokemon.baseStats.hp
+            )}">${pokemon.baseStats.hp}</span></td>
+            <td><span class="stat-value ${getStatClass(
+              pokemon.baseStats.atk
+            )}">${pokemon.baseStats.atk}</span></td>
+            <td><span class="stat-value ${getStatClass(
+              pokemon.baseStats.def
+            )}">${pokemon.baseStats.def}</span></td>
+            <td><span class="stat-value ${getStatClass(
+              pokemon.baseStats.spa
+            )}">${pokemon.baseStats.spa}</span></td>
+            <td><span class="stat-value ${getStatClass(
+              pokemon.baseStats.spd
+            )}">${pokemon.baseStats.spd}</span></td>
+            <td><span class="stat-value ${getStatClass(
+              pokemon.baseStats.spe
+            )}">${pokemon.baseStats.spe}</span></td>
         </tr>
-    `).join('');
-}
+    `
+          )
+          .join("");
+      }
 
-function getStatClass(statValue) {
-    if (statValue >= 120) return 'stat-excellent';
-    if (statValue >= 100) return 'stat-great';
-    if (statValue >= 80) return 'stat-good';
-    if (statValue >= 60) return 'stat-average';
-    return 'stat-low';
-}
-
-</script>
-</body>
+      function getStatClass(statValue) {
+        if (statValue >= 120) return "stat-excellent";
+        if (statValue >= 100) return "stat-great";
+        if (statValue >= 80) return "stat-good";
+        if (statValue >= 60) return "stat-average";
+        return "stat-low";
+      }
+    </script>
+  </body>
 </html>
